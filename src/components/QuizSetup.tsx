@@ -53,18 +53,24 @@ export function QuizSetup({ onQuizGenerated }: QuizSetupProps) {
         return;
       }
 
+      // Limpiamos duplicados por texto (a veces la IA repite preguntas si el chunk se solapa)
+      const uniqueQuestions = allQuestions.filter((q, index, self) =>
+        index === self.findIndex((t) => t.text.trim() === q.text.trim())
+      );
+
       setStatusText("Recortando imágenes de las preguntas...");
-      const questionsWithImages = await extractQuestionImages(questionsFile, allQuestions);
+      const questionsWithImages = await extractQuestionImages(questionsFile, uniqueQuestions);
 
       setStatusText("Guardando ensayo...");
+      const finalTitle = quizName.trim() || questionsFile.name.replace(".pdf", "");
       const quizId = await saveQuiz({
-        title: quizName.trim() || questionsFile.name.replace(".pdf", ""),
+        title: finalTitle,
         questions: questionsWithImages,
       });
 
       onQuizGenerated({
         id: quizId,
-        title: quizName.trim() || questionsFile.name.replace(".pdf", ""),
+        title: finalTitle,
         questions: questionsWithImages,
         createdAt: Date.now(),
       });

@@ -29,34 +29,41 @@ export function AITutor({ question, userWrongAnswerIndex }: AITutorProps) {
       try {
         const response = await chatWithTutor(question, userWrongAnswerIndex, history, userMsg);
         const reader = response.body?.getReader();
-        if (!reader) throw new Error("No se pudo obtener el reader del stream");
+        if (!reader) throw new Error("No se pudo conectar");
 
         const decoder = new TextDecoder();
         let fullText = "";
+        let buffer = ""; // Buffer para líneas parciales
 
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
 
-          const chunk = decoder.decode(value);
-          const lines = chunk.split("\n");
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n");
+          buffer = lines.pop() || ""; // Guardamos el residuo incompleto
 
           for (const line of lines) {
-            if (line.startsWith("data: ")) {
-              const data = line.slice(6);
-              if (data === "[DONE]") break;
-              try {
-                const parsed = JSON.parse(data);
-                const content = parsed.choices[0]?.delta?.content || "";
-                fullText += content;
-                setMessages((prev) => {
-                  const newMessages = [...prev];
+            const trimmedLine = line.trim();
+            if (!trimmedLine || !trimmedLine.startsWith("data: ")) continue;
+            
+            const data = trimmedLine.slice(6);
+            if (data === "[DONE]") break;
+            
+            try {
+              const parsed = JSON.parse(data);
+              const content = parsed.choices[0]?.delta?.content || "";
+              fullText += content;
+              
+              setMessages((prev) => {
+                const newMessages = [...prev];
+                if (newMessages.length > 0) {
                   newMessages[newMessages.length - 1].text = fullText;
-                  return newMessages;
-                });
-              } catch (e) {
-                // Skip partial chunks
-              }
+                }
+                return newMessages;
+              });
+            } catch (e) {
+              // Silently ignore parse errors for partial JSON
             }
           }
         }
@@ -64,7 +71,9 @@ export function AITutor({ question, userWrongAnswerIndex }: AITutorProps) {
         console.error(error);
         setMessages((prev) => {
           const newMessages = [...prev];
-          newMessages[newMessages.length - 1].text = "Hubo un error al conectar con el tutor.";
+          if (newMessages.length > 0) {
+            newMessages[newMessages.length - 1].text = "Hubo un error al conectar. Inténtalo de nuevo.";
+          }
           return newMessages;
         });
       } finally {
@@ -104,40 +113,49 @@ export function AITutor({ question, userWrongAnswerIndex }: AITutorProps) {
       try {
         const response = await chatWithTutor(question, userWrongAnswerIndex, history, userMsg);
         const reader = response.body?.getReader();
-        if (!reader) throw new Error("No reader");
+        if (!reader) throw new Error("No pudo conectarse al stream");
 
         const decoder = new TextDecoder();
         let fullText = "";
+        let buffer = "";
 
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
 
-          const chunk = decoder.decode(value);
-          const lines = chunk.split("\n");
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n");
+          buffer = lines.pop() || "";
 
           for (const line of lines) {
-            if (line.startsWith("data: ")) {
-              const data = line.slice(6);
-              if (data === "[DONE]") break;
-              try {
-                const parsed = JSON.parse(data);
-                const content = parsed.choices[0]?.delta?.content || "";
-                fullText += content;
-                setMessages((prev) => {
-                  const newMessages = [...prev];
+            const trimmedLine = line.trim();
+            if (!trimmedLine || !trimmedLine.startsWith("data: ")) continue;
+            
+            const data = trimmedLine.slice(6);
+            if (data === "[DONE]") break;
+            
+            try {
+              const parsed = JSON.parse(data);
+              const content = parsed.choices[0]?.delta?.content || "";
+              fullText += content;
+              
+              setMessages((prev) => {
+                const newMessages = [...prev];
+                if (newMessages.length > 0) {
                   newMessages[newMessages.length - 1].text = fullText;
-                  return newMessages;
-                });
-              } catch (e) { }
-            }
+                }
+                return newMessages;
+              });
+            } catch (e) { }
           }
         }
       } catch (error) {
         console.error(error);
         setMessages((prev) => {
           const newMessages = [...prev];
-          newMessages[newMessages.length - 1].text = "Hubo un error al conectar con el tutor.";
+          if (newMessages.length > 0) {
+            newMessages[newMessages.length - 1].text = "Error al responder. Revisa tu conexión.";
+          }
           return newMessages;
         });
       } finally {

@@ -37,25 +37,27 @@ export async function extractQuestionImages(pdfFile: File, questions: QuizQuesti
   for (const q of questions) {
     try {
       const page = await pdf.getPage(q.pageIndex + 1);
-      const viewport = page.getViewport({ scale: 2.0 }); // 2x scale for better quality
+      const viewport = page.getViewport({ scale: 2.5 }); // Higher quality for OCR
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d')!;
       canvas.width = viewport.width;
       canvas.height = viewport.height;
-
       await page.render({ canvasContext: ctx, viewport, canvas }).promise;
 
       let [ymin, xmin, ymax, xmax] = q.box;
-      // Add padding (2% of the page)
-      ymin = Math.max(0, ymin - 20);
-      xmin = Math.max(0, xmin - 20);
-      ymax = Math.min(1000, ymax + 20);
-      xmax = Math.min(1000, xmax + 20);
+      // Precision padding: Ensuring we grab context around the question
+      const PADDING = 60; 
+      const realYmin = Math.max(0, ymin - PADDING);
+      const realXmin = Math.max(0, xmin - PADDING / 2);
+      const realYmax = Math.min(1000, ymax + PADDING);
+      const realXmax = Math.min(1000, xmax + PADDING / 2);
 
-      const cropX = (xmin / 1000) * canvas.width;
-      const cropY = (ymin / 1000) * canvas.height;
-      const cropW = ((xmax - xmin) / 1000) * canvas.width;
-      const cropH = ((ymax - ymin) / 1000) * canvas.height;
+      const cropX = (realXmin / 1000) * canvas.width;
+      const cropY = (realYmin / 1000) * canvas.height;
+      const cropW = ((realXmax - realXmin) / 1000) * canvas.width;
+      const cropH = ((realYmax - realYmin) / 1000) * canvas.height;
+
+      if (cropW < 10 || cropH < 10) throw new Error("Recorte inválido");
 
       const cropCanvas = document.createElement('canvas');
       cropCanvas.width = cropW;
@@ -65,11 +67,11 @@ export async function extractQuestionImages(pdfFile: File, questions: QuizQuesti
       cropCtx.fillRect(0, 0, cropW, cropH);
       cropCtx.drawImage(canvas, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
 
-      const imageBase64 = cropCanvas.toDataURL('image/jpeg', 0.9);
+      const imageBase64 = cropCanvas.toDataURL('image/jpeg', 0.95);
       updatedQuestions.push({ ...q, imageBase64 });
     } catch (e) {
       console.error(`Failed to crop image for question ${q.id}`, e);
-      updatedQuestions.push(q); // Push without image if it fails
+      updatedQuestions.push(q);
     }
   }
 
