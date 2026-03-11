@@ -9,6 +9,39 @@ export interface QuizQuestion {
   imageBase64?: string;
 }
 
+// Helper para limpiar y parsear JSON de forma robusta
+function cleanAndParseJSON(text: string) {
+  // 1. Quitar bloques de código markdown (```json ... ```)
+  let cleaned = text.replace(/```json\n?/, "").replace(/\n?```/, "").trim();
+  
+  // 2. Si la IA usó paréntesis en lugar de corchetes para los arrays (error común), los corregimos
+  // Buscamos patrones como : (1, 2, 3) y los cambiamos por : [1, 2, 3]
+  cleaned = cleaned.replace(/:\s*\(([^)]+)\)/g, ': [$1]');
+
+  // 3. Intentar encontrar el inicio y fin del JSON real por si hay texto extra
+  const firstBracket = cleaned.indexOf('[');
+  const firstBrace = cleaned.indexOf('{');
+  const lastBracket = cleaned.lastIndexOf(']');
+  const lastBrace = cleaned.lastIndexOf('}');
+
+  let start = -1;
+  let end = -1;
+
+  if (firstBracket !== -1 && (firstBrace === -1 || firstBracket < firstBrace)) {
+    start = firstBracket;
+    end = lastBracket;
+  } else {
+    start = firstBrace;
+    end = lastBrace;
+  }
+
+  if (start !== -1 && end !== -1) {
+    cleaned = cleaned.substring(start, end + 1);
+  }
+
+  return JSON.parse(cleaned);
+}
+
 export async function generateQuizFromImages(
   questionImages: string[],
   solutionImages: string[]
@@ -27,10 +60,10 @@ export async function generateQuizFromImages(
         {
           type: "text",
           text: `INSTRUCCIONES CRÍTICAS:
-          1. Transcribe el texto de cada pregunta exactamente como aparece. Incluye fórmulas LaTeX con $.
-          2. Generar JSON con este esquema: Array<{id, pageIndex, box: [ymin, xmin, ymax, xmax], text, options, correctOptionIndex, explanation}>.
-          3. 'pageIndex' es el índice de la imagen (empezando en 0).
-          4. El 'box' son coordenadas normalizadas 0-1000 que encierran el texto y dibujos de la pregunta.`
+          1. Transcribe el texto de cada pregunta exactamente como aparece. Usa LaTeX con $.
+          2. Generar JSON con este esquema EXACTO: Array<{id, pageIndex, box: [ymin, xmin, ymax, xmax], text, options, correctOptionIndex, explanation}>.
+          3. EL BOX DEBE SER UN ARRAY DE NÚMEROS CON CORCHETES [ ], NUNCA USE PARÉNTESIS ( ).
+          4. No incluyas ningún texto explicativo, solo el objeto JSON.`
         }
       ]
     }
@@ -78,11 +111,11 @@ export async function generateQuizFromImages(
   
   const rawContent = data.choices[0].message.content;
   try {
-    const parsed = JSON.parse(rawContent);
+    const parsed = cleanAndParseJSON(rawContent);
     return parsed.questions || parsed;
-  } catch (e) {
-    console.error("Failed to parse AI response", rawContent);
-    throw new Error("La IA respondió en un formato inválido. Intenta con un PDF más corto.");
+  } catch (e: any) {
+    console.error("AI Response:", rawContent);
+    throw new Error(`Error de formato en la respuesta de la IA: ${e.message}. Prueba con un PDF más claro o con menos preguntas.`);
   }
 }
 
