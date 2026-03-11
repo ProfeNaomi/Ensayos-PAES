@@ -32,19 +32,31 @@ export function QuizSetup({ onQuizGenerated }: QuizSetupProps) {
       const questionImages = await pdfToImages(questionsFile);
       const solutionImages = solutionsFile ? await pdfToImages(solutionsFile) : [];
 
-      setStatusText("La IA está extrayendo las preguntas (esto puede tardar)...");
-      const questions = await generateQuizFromImages(questionImages, solutionImages);
+      // PROCESAMIENTO POR LOTES (Chunking) para evitar que la IA se corte
+      setStatusText("Iniciando extracción por partes...");
+      const CHUNK_SIZE = 3; // Procesar 3 páginas a la vez
+      let allQuestions: QuizQuestion[] = [];
       
-      if (questions.length === 0) {
-        setError("No se pudieron extraer preguntas del documento. Asegúrate de que sea un PDF válido con preguntas tipo PAES.");
+      for (let i = 0; i < questionImages.length; i += CHUNK_SIZE) {
+        const chunk = questionImages.slice(i, i + CHUNK_SIZE);
+        const progress = Math.round(((i + chunk.length) / questionImages.length) * 100);
+        setStatusText(`Extrayendo preguntas: ${progress}% completado...`);
+        
+        // Enviamos el trozo de preguntas y las imágenes de soluciones (para que la IA corrija)
+        const chunkQuestions = await generateQuizFromImages(chunk, solutionImages);
+        allQuestions = [...allQuestions, ...chunkQuestions];
+      }
+      
+      if (allQuestions.length === 0) {
+        setError("No se pudieron extraer preguntas. Intenta con un PDF más claro.");
         setIsGenerating(false);
         return;
       }
 
       setStatusText("Recortando imágenes de las preguntas...");
-      const questionsWithImages = await extractQuestionImages(questionsFile, questions);
+      const questionsWithImages = await extractQuestionImages(questionsFile, allQuestions);
 
-      setStatusText("Guardando en el repositorio...");
+      setStatusText("Guardando ensayo...");
       const quizId = await saveQuiz({
         title: quizName.trim() || questionsFile.name.replace(".pdf", ""),
         questions: questionsWithImages,
@@ -58,7 +70,7 @@ export function QuizSetup({ onQuizGenerated }: QuizSetupProps) {
       });
     } catch (err: any) {
       console.error(err);
-      setError(err.message || "Ocurrió un error al generar el cuestionario.");
+      setError(err.message || "Error al procesar el ensayo.");
     } finally {
       setIsGenerating(false);
     }

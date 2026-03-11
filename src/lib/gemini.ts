@@ -56,18 +56,20 @@ export async function generateQuizFromImages(
   const messages: any[] = [
     {
       role: "system",
-      content: "Eres un experto transcriptor y docente de matemáticas chileno. Extrae TODAS las preguntas de opción múltiple de las imágenes del ensayo PAES."
+      content: "Eres un extractor de datos ultra-eficiente. Tu meta es transcribir preguntas PAES de matemáticas."
     },
     {
       role: "user",
       content: [
         {
           type: "text",
-          text: `INSTRUCCIONES CRÍTICAS:
-          1. Transcribe el texto de cada pregunta exactamente como aparece. Usa LaTeX con $.
-          2. Generar JSON con este esquema EXACTO: Array<{id, pageIndex, box: [ymin, xmin, ymax, xmax], text, options, correctOptionIndex, explanation}>.
-          3. EL BOX DEBE SER UN ARRAY DE NÚMEROS CON CORCHETES [ ], NUNCA USE PARÉNTESIS ( ).
-          4. No incluyas ningún texto explicativo, solo el objeto JSON.`
+          text: `GENERA JSON COMPACTO (Sin espacios extra):
+          Schema: Array<{id, pageIndex, box: [ymin, xmin, ymax, xmax], text, options, correctOptionIndex}>.
+          REGLAS:
+          1. OMITE EXPLICACIONES (Explanation: "").
+          2. Usa LaTeX $ para fórmulas.
+          3. RESPUESTA SOLO JSON, SIN TEXTO ADICIONAL.
+          4. No superes los 8000 tokens.`
         }
       ]
     }
