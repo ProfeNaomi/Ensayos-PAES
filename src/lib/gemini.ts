@@ -65,7 +65,7 @@ export async function generateQuizFromPDFs(
       "X-Title": "PAES Tutor IA"
     },
     body: JSON.stringify({
-      model: "google/gemini-flash-1.5", // Usamos Gemini a través de OpenRouter para mayor estabilidad
+      model: "google/gemini-2.0-flash-001", // Versión 2.0 más estable en OpenRouter
       messages: messages,
       response_format: { type: "json_object" }
     })
@@ -112,7 +112,7 @@ export async function chatWithTutor(
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      model: "deepseek/deepseek-r1", // Aquí usamos lo más avanzado: DeepSeek R1
+      model: "deepseek/deepseek-r1", // DeepSeek R1 original
       messages: messages,
       stream: true
     })
