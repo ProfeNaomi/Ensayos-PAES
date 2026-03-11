@@ -102,7 +102,8 @@ export async function generateQuizFromImages(
     body: JSON.stringify({
       model: "google/gemini-2.0-flash-001",
       messages: messages,
-      response_format: { type: "json_object" }
+      response_format: { type: "json_object" },
+      max_tokens: 8192 // Aumentamos al máximo para evitar cortes
     })
   });
 
