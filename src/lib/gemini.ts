@@ -1,6 +1,6 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
+const genAI = new GoogleGenAI(import.meta.env.VITE_GEMINI_API_KEY);
 
 export interface QuizQuestion {
   id: number;
@@ -105,10 +105,9 @@ export async function generateQuizFromPDFs(
     No incluyas texto fuera del JSON.`,
   });
 
-  const response = await ai.models.generateContent({
-    model: "models/gemini-1.5-flash",
-    contents: { parts },
-    config: {
+  const model = genAI.getGenerativeModel({ 
+    model: "gemini-1.5-flash",
+    generationConfig: {
       maxOutputTokens: 16384,
       responseMimeType: "application/json",
       responseSchema: {
@@ -133,8 +132,11 @@ export async function generateQuizFromPDFs(
           required: ["id", "pageIndex", "box", "text", "options", "correctOptionIndex", "explanation"],
         },
       },
-    },
+    }
   });
+
+  const result = await model.generateContent({ contents: [{ parts }] });
+  const response = result.response;
 
   const rawText = response.text || "";
   if (!rawText) throw new Error("No se recibió respuesta de la IA.");
@@ -188,16 +190,12 @@ export async function chatWithTutor(
     parts: [{ text: newMessage }],
   });
 
-  const response = await ai.models.generateContentStream({
-    model: "models/gemini-1.5-flash",
-    contents,
-    config: {
-      systemInstruction: {
-        role: "system",
-        parts: [{ text: systemInstruction }]
-      }
-    },
+  const model = genAI.getGenerativeModel({ 
+    model: "gemini-1.5-flash",
+    systemInstruction: systemInstruction
   });
+
+  const response = await model.generateContentStream({ contents });
 
   return response;
 }
