@@ -90,49 +90,52 @@ export function QuizRunner({ questions, onRestart }: QuizRunnerProps) {
 
   return (
     <div className="w-full h-full flex flex-col lg:flex-row bg-slate-50 overflow-hidden">
-      {/* Question Column */}
-      <div className="w-full lg:w-[70%] h-full overflow-y-auto p-4 md:p-8">
-        <div className="max-w-4xl mx-auto space-y-6 pb-20">
+      {/* Question Column - 75% Width */}
+      <div className="w-full lg:w-[75%] h-full overflow-y-auto p-4 md:p-10 border-r border-slate-200">
+        <div className="max-w-5xl mx-auto space-y-6 pb-20">
           <motion.div 
             key={currentIndex}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="bg-white p-6 md:p-10 rounded-[2rem] shadow-xl shadow-slate-200/50 border border-slate-100"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white p-6 md:p-12 rounded-[2.5rem] shadow-2xl shadow-slate-200/40 border border-slate-100"
           >
-            <div className="flex items-center justify-between mb-8">
-              <div className="flex items-center space-x-3">
-                <span className="text-sm font-black text-indigo-600 bg-indigo-50 px-4 py-2 rounded-xl">
-                  PREGUNTA {currentIndex + 1}
+            <div className="flex items-center justify-between mb-10">
+              <div className="flex items-center space-x-4">
+                <span className="text-sm font-black text-indigo-600 bg-indigo-50 px-6 py-2.5 rounded-2xl border border-indigo-100/50">
+                  PREGUNTA {question.id || currentIndex + 1}
                 </span>
-                <div className="flex space-x-1">
+                <div className="flex space-x-1.5">
                   {questions.map((_, i) => (
                     <div 
                       key={i} 
                       className={cn(
-                        "w-2 h-2 rounded-full transition-all duration-300",
-                        i === currentIndex ? "w-6 bg-indigo-600" : i < currentIndex ? "bg-emerald-400" : "bg-slate-200"
+                        "w-2.5 h-2.5 rounded-full transition-all duration-500",
+                        i === currentIndex ? "w-10 bg-indigo-600 shadow-lg shadow-indigo-100" : i < currentIndex ? "bg-emerald-400" : "bg-slate-200"
                       )}
                     />
                   ))}
                 </div>
               </div>
-              <span className="text-sm font-bold text-slate-400 uppercase tracking-widest">
-                {score} pts
-              </span>
+              <div className="flex items-center space-x-2 bg-slate-50 px-4 py-2 rounded-xl border border-slate-100">
+                <Sparkles className="w-4 h-4 text-indigo-500" />
+                <span className="text-xs font-black text-slate-500 uppercase tracking-widest">
+                  {score} Aciertos
+                </span>
+              </div>
             </div>
 
-            {/* Question Box */}
-            <div className="mb-10">
+            {/* Question Box - Taking full advantage of 75% width */}
+            <div className="mb-12">
               {question.imageBase64 ? (
-                <div className="rounded-2xl overflow-hidden border border-slate-200 bg-slate-50">
+                <div className="rounded-3xl overflow-hidden border-2 border-slate-100 bg-white shadow-inner p-2">
                   <img 
                     src={question.imageBase64} 
                     alt="Pregunta" 
-                    className="w-full object-contain mx-auto"
+                    className="w-full max-h-[65vh] object-contain mx-auto transition-transform hover:scale-[1.02] duration-500"
                   />
                 </div>
               ) : (
-                <div className="prose prose-slate prose-lg max-w-none">
+                <div className="prose prose-slate prose-xl max-w-none font-medium leading-relaxed">
                   <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
                     {question.text}
                   </ReactMarkdown>
@@ -230,8 +233,8 @@ export function QuizRunner({ questions, onRestart }: QuizRunnerProps) {
         </div>
       </div>
 
-      {/* Tutor Sidebar */}
-      <div className="w-full lg:w-[30%] h-full border-t lg:border-t-0 lg:border-l border-slate-200 bg-white flex flex-col z-10 shadow-2xl">
+      {/* Tutor Sidebar - 25% Width */}
+      <div className="w-full lg:w-[25%] h-full border-t lg:border-t-0 lg:border-l border-slate-200 bg-white flex flex-col z-10 shadow-2xl">
         <AnimatePresence mode="wait">
           {showTutor && selectedOption !== null ? (
             <motion.div 

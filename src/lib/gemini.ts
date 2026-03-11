@@ -56,20 +56,33 @@ export async function generateQuizFromImages(
   const messages: any[] = [
     {
       role: "system",
-      content: "Eres un extractor de datos ultra-eficiente. Tu meta es transcribir preguntas PAES de matemáticas."
+      content: `Eres un experto en digitalizar ensayos PAES de Matemáticas.
+      TU MISIÓN: Extraer cada pregunta con su número original, texto, opciones y ubicación exacta.
+      
+      REGLAS DE ORO:
+      1. IDENTIFICACIÓN: Busca el número (1, 2, 3...) al inicio de cada pregunta y úsalo como "id".
+      2. ÁREA DE CAPTURA (box): El "box" debe ser amplio [ymin, xmin, ymax, xmax]. Debe incluir TODO el enunciado, gráficos, tablas y las 4 o 5 opciones (A, B, C, D, E).
+      3. LATEX: Usa $ para TODA expresión matemática.
+      4. JSON PURO: Responde solo con el objeto JSON.`
     },
     {
       role: "user",
       content: [
         {
           type: "text",
-          text: `GENERA JSON COMPACTO (Sin espacios extra):
-          Schema: Array<{id, pageIndex, box: [ymin, xmin, ymax, xmax], text, options, correctOptionIndex}>.
-          REGLAS:
-          1. OMITE EXPLICACIONES (Explanation: "").
-          2. Usa LaTeX $ para fórmulas.
-          3. RESPUESTA SOLO JSON, SIN TEXTO ADICIONAL.
-          4. No superes los 8000 tokens.`
+          text: `Extrae las preguntas de las imágenes adjuntas siguiendo este esquema JSON:
+          {
+            "questions": [
+              {
+                "id": number (número real que aparece en el PDF),
+                "pageIndex": number (índice de imagen, empezando en 0),
+                "box": [ymin, xmin, ymax, xmax] (0-1000, cubriendo TODA la pregunta y sus opciones),
+                "text": "Texto completo de la pregunta",
+                "options": ["Opción A", "Opción B", "Opción C", "Opción D"],
+                "correctOptionIndex": number (0-4)
+              }
+            ]
+          }`
         }
       ]
     }

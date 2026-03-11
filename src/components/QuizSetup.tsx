@@ -53,10 +53,12 @@ export function QuizSetup({ onQuizGenerated }: QuizSetupProps) {
         return;
       }
 
-      // Limpiamos duplicados por texto (a veces la IA repite preguntas si el chunk se solapa)
-      const uniqueQuestions = allQuestions.filter((q, index, self) =>
-        index === self.findIndex((t) => t.text.trim() === q.text.trim())
-      );
+      // Limpiamos duplicados y ordenamos por el ID real (número de pregunta)
+      const uniqueQuestions = allQuestions
+        .filter((q, index, self) =>
+          index === self.findIndex((t) => t.text.trim() === q.text.trim())
+        )
+        .sort((a, b) => a.id - b.id);
 
       setStatusText("Recortando imágenes de las preguntas...");
       const questionsWithImages = await extractQuestionImages(questionsFile, uniqueQuestions);
