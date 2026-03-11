@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { QuizQuestion, chatWithTutor } from "../lib/gemini";
-import { Send, Bot, User, Loader2, Sparkles } from "lucide-react";
+import { Send, Bot, User, Loader2, Sparkles, Mic, MicOff } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
@@ -21,7 +21,38 @@ export function AITutor({ question, userWrongAnswerIndex }: AITutorProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isListening, setIsListening] = useState(false);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const recognitionRef = useRef<any>(null);
+
+  // Initialize Speech Recognition
+  useEffect(() => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = false;
+      recognitionRef.current.interimResults = false;
+      recognitionRef.current.lang = 'es-CL';
+
+      recognitionRef.current.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        setInput((prev) => (prev ? `${prev} ${transcript}` : transcript));
+        setIsListening(false);
+      };
+
+      recognitionRef.current.onerror = () => setIsListening(false);
+      recognitionRef.current.onend = () => setIsListening(false);
+    }
+  }, []);
+
+  const toggleListening = () => {
+    if (isListening) {
+      recognitionRef.current?.stop();
+    } else {
+      setIsListening(true);
+      recognitionRef.current?.start();
+    }
+  };
 
   // Initial message from the tutor
   useEffect(() => {
@@ -33,7 +64,7 @@ export function AITutor({ question, userWrongAnswerIndex }: AITutorProps) {
 
         const decoder = new TextDecoder();
         let fullText = "";
-        let buffer = ""; // Buffer para líneas parciales
+        let buffer = ""; 
 
         while (true) {
           const { done, value } = await reader.read();
@@ -41,7 +72,7 @@ export function AITutor({ question, userWrongAnswerIndex }: AITutorProps) {
 
           buffer += decoder.decode(value, { stream: true });
           const lines = buffer.split("\n");
-          buffer = lines.pop() || ""; // Guardamos el residuo incompleto
+          buffer = lines.pop() || ""; 
 
           for (const line of lines) {
             const trimmedLine = line.trim();
@@ -62,9 +93,7 @@ export function AITutor({ question, userWrongAnswerIndex }: AITutorProps) {
                 }
                 return newMessages;
               });
-            } catch (e) {
-              // Silently ignore parse errors for partial JSON
-            }
+            } catch (e) { }
           }
         }
       } catch (error) {
@@ -108,7 +137,6 @@ export function AITutor({ question, userWrongAnswerIndex }: AITutorProps) {
     setMessages((prev) => [...prev, { role: "user", text: userMsg }, { role: "model", text: "" }]);
     setIsLoading(true);
 
-    // Reuse the streaming logic defined in useEffect
     const fetchAndStream = async (history: Message[], userMsg: string) => {
       try {
         const response = await chatWithTutor(question, userWrongAnswerIndex, history, userMsg);
@@ -254,12 +282,24 @@ export function AITutor({ question, userWrongAnswerIndex }: AITutorProps) {
           }}
           className="flex items-center space-x-2 bg-slate-50 p-1.5 rounded-[2rem] border border-slate-200 focus-within:border-indigo-500 transition-colors"
         >
+          <motion.button
+            type="button"
+            whileTap={{ scale: 0.9 }}
+            onClick={toggleListening}
+            className={cn(
+               "p-3 rounded-full transition-all",
+               isListening ? "bg-red-500 text-white animate-pulse" : "bg-white text-slate-400 border border-slate-200 hover:text-indigo-600"
+            )}
+          >
+            {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+          </motion.button>
+
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Pregunta algo..."
-            className="flex-1 px-6 py-2.5 bg-transparent border-none focus:ring-0 text-sm font-medium outline-none placeholder:text-slate-400"
+            placeholder={isListening ? "Escuchando..." : "Pregunta algo..."}
+            className="flex-1 px-4 py-2.5 bg-transparent border-none focus:ring-0 text-sm font-medium outline-none placeholder:text-slate-400"
             disabled={isLoading}
           />
           <button
@@ -274,4 +314,3 @@ export function AITutor({ question, userWrongAnswerIndex }: AITutorProps) {
     </div>
   );
 }
-

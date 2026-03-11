@@ -1,8 +1,8 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 
-// Usamos variables de entorno para mayor seguridad y flexibilidad
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
@@ -12,19 +12,25 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
-// Solo inicializar si tenemos las claves, sino exportar null para el fallback
-let app;
+let app: any;
 let auth: any = null;
 let db: any = null;
+let storage: any = null;
 
-try {
-  if (firebaseConfig.apiKey) {
+// Initialize Firebase only if API Key is present
+const hasConfig = typeof firebaseConfig.apiKey === 'string' && firebaseConfig.apiKey.length > 0;
+
+if (hasConfig) {
+  try {
     app = initializeApp(firebaseConfig);
     auth = getAuth(app);
     db = getFirestore(app);
+    storage = getStorage(app);
+  } catch (e) {
+    console.error("Error inicializando Firebase:", e);
   }
-} catch (e) {
-  console.warn("Firebase no configurado correctamente. Usando modo offline.");
+} else {
+  console.warn("VITE_FIREBASE_API_KEY no encontrada. La app funcionará en modo limitado (sin persistencia).");
 }
 
-export { auth, db };
+export { auth, db, storage };

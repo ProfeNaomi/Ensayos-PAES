@@ -1,79 +1,156 @@
 import React, { useState } from "react";
-import { Upload, FileText, CheckCircle, Loader2 } from "lucide-react";
-import { fileToBase64 } from "../lib/utils";
+import { Upload, FileText, CheckCircle, Loader2, Image as ImageIcon, FileUp, Sparkles, X } from "lucide-react";
 import { generateQuizFromImages, QuizQuestion } from "../lib/gemini";
-import { extractQuestionImages } from "../lib/pdf";
+import { extractQuestionImages, pdfToImages } from "../lib/pdf";
 import { saveQuiz, Quiz } from "../lib/db";
-import { v4 as uuidv4 } from "uuid";
+import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "../lib/utils";
 
 interface QuizSetupProps {
   onQuizGenerated: (quiz: Quiz) => void;
+  user: any;
 }
 
-export function QuizSetup({ onQuizGenerated }: QuizSetupProps) {
+type SetupMode = "pdf" | "images";
+
+export function QuizSetup({ onQuizGenerated, user }: QuizSetupProps) {
+  const [mode, setMode] = useState<SetupMode>("pdf");
   const [questionsFile, setQuestionsFile] = useState<File | null>(null);
   const [solutionsFile, setSolutionsFile] = useState<File | null>(null);
+  const [individualImages, setIndividualImages] = useState<File[]>([]);
   const [quizName, setQuizName] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [statusText, setStatusText] = useState("");
+  const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
+  const optimizeImage = (base64: string, maxWidth = 1000): Promise<string> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.src = base64;
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx?.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL("image/jpeg", 0.7)); // Compresión al 70%
+      };
+      img.onerror = () => resolve(base64); // Fallback si falla optimización
+    });
+  };
+
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
   const handleGenerate = async () => {
-    if (!questionsFile) return;
+    if (!user) return;
+    if (mode === "pdf" && !questionsFile) return;
+    if (mode === "images" && individualImages.length === 0) return;
+    if (!quizName.trim()) {
+      setError("Por favor, ingresa un nombre para el ensayo.");
+      return;
+    }
 
     setIsGenerating(true);
     setError(null);
+    setProgress(0);
 
     try {
-      setStatusText("Procesando PDF (Páginas a Imágenes)...");
-      const { pdfToImages } = await import("../lib/pdf");
-      const { generateQuizFromImages } = await import("../lib/gemini");
-      
-      const questionImages = await pdfToImages(questionsFile);
-      const solutionImages = solutionsFile ? await pdfToImages(solutionsFile) : [];
+      let finalQuestions: QuizQuestion[] = [];
+      const solutionImages: string[] = solutionsFile ? await pdfToImages(solutionsFile) : [];
 
-      // PROCESAMIENTO POR LOTES (Chunking) para evitar que la IA se corte
-      setStatusText("Iniciando extracción por partes...");
-      const CHUNK_SIZE = 3; // Procesar 3 páginas a la vez
-      let allQuestions: QuizQuestion[] = [];
-      
-      for (let i = 0; i < questionImages.length; i += CHUNK_SIZE) {
-        const chunk = questionImages.slice(i, i + CHUNK_SIZE);
-        const progress = Math.round(((i + chunk.length) / questionImages.length) * 100);
-        setStatusText(`Extrayendo preguntas: ${progress}% completado...`);
+      if (mode === "pdf" && questionsFile) {
+        setStatusText("Paso 1/5: Procesando PDF...");
+        const questionImages = await pdfToImages(questionsFile);
+
+        setStatusText("Paso 2/5: Iniciando extracción...");
+        const CHUNK_SIZE = 3; 
         
-        // Enviamos el trozo de preguntas y las imágenes de soluciones (para que la IA corrija)
-        const chunkQuestions = await generateQuizFromImages(chunk, solutionImages);
-        allQuestions = [...allQuestions, ...chunkQuestions];
+        for (let i = 0; i < questionImages.length; i += CHUNK_SIZE) {
+          const chunk = questionImages.slice(i, i + CHUNK_SIZE);
+          const currentProgress = Math.round(((i + chunk.length) / questionImages.length) * 100);
+          setProgress(currentProgress);
+          setStatusText(`Paso 3/5: Extrayendo preguntas (${currentProgress}%)...`);
+          
+          const chunkQuestions = await generateQuizFromImages(chunk, solutionImages);
+          finalQuestions = [...finalQuestions, ...chunkQuestions];
+        }
+
+        setStatusText("Recortando imágenes de las preguntas...");
+        finalQuestions = await extractQuestionImages(questionsFile, finalQuestions);
+
+      } else if (mode === "images" && individualImages.length > 0) {
+        setStatusText("Paso 1/5: Optimizando imágenes...");
+        const rawBase64s = await Promise.all(individualImages.map(f => fileToBase64(f)));
+        const base64Images = await Promise.all(rawBase64s.map(b => optimizeImage(b)));
+        
+        setStatusText("Paso 2/5: Analizando con IA...");
+        const CHUNK_SIZE = 3;
+        for (let i = 0; i < base64Images.length; i += CHUNK_SIZE) {
+          const chunk = base64Images.slice(i, i + CHUNK_SIZE);
+          const currentProgress = Math.round(((i + chunk.length) / base64Images.length) * 100);
+          setProgress(currentProgress);
+          setStatusText(`Paso 3/5: Procesando (${currentProgress}%)...`);
+          const chunkQuestions = await generateQuizFromImages(chunk, []);
+          
+          // Mapear el imageBase64 original a cada pregunta
+          // IMPORTANTE: pageIndex del AI debe estar entre 0 y chunk.length-1
+          const mappedQuestions = chunkQuestions.map(q => {
+            const imageIdx = (q.pageIndex !== undefined && q.pageIndex >= 0 && q.pageIndex < chunk.length) 
+              ? q.pageIndex 
+              : 0; // Fallback al primero si falla la IA
+            
+            return {
+              ...q,
+              imageBase64: chunk[imageIdx]
+            };
+          });
+          finalQuestions = [...finalQuestions, ...mappedQuestions];
+        }
       }
       
-      if (allQuestions.length === 0) {
-        setError("No se pudieron extraer preguntas. Intenta con un PDF más claro.");
+      if (finalQuestions.length === 0) {
+        setError("No se pudieron extraer preguntas. Intenta con archivos más claros.");
         setIsGenerating(false);
         return;
       }
 
-      // Limpiamos duplicados y ordenamos por el ID real (número de pregunta)
-      const uniqueQuestions = allQuestions
+      // Limpiar duplicados y ordenar
+      const uniqueQuestions = finalQuestions
         .filter((q, index, self) =>
           index === self.findIndex((t) => t.text.trim() === q.text.trim())
         )
-        .sort((a, b) => a.id - b.id);
+        .sort((a, b) => (a.id || 0) - (b.id || 0));
 
-      setStatusText("Recortando imágenes de las preguntas...");
-      const questionsWithImages = await extractQuestionImages(questionsFile, uniqueQuestions);
-
-      setStatusText("Guardando ensayo...");
-      const finalTitle = quizName.trim() || questionsFile.name.replace(".pdf", "");
+      setStatusText("Paso 4/5: Subiendo imágenes a la nube...");
+      const finalTitle = quizName.trim();
+      
       const quizId = await saveQuiz({
         title: finalTitle,
-        questions: questionsWithImages,
-      });
+        questions: uniqueQuestions,
+      }, user.uid);
+
+      setStatusText("Paso 5/5: Finalizando...");
 
       onQuizGenerated({
         id: quizId,
         title: finalTitle,
-        questions: questionsWithImages,
+        questions: uniqueQuestions,
         createdAt: Date.now(),
       });
     } catch (err: any) {
@@ -84,122 +161,222 @@ export function QuizSetup({ onQuizGenerated }: QuizSetupProps) {
     }
   };
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    setIndividualImages(prev => [...prev, ...files]);
+  };
+
+  const removeImage = (index: number) => {
+    setIndividualImages(prev => prev.filter((_, i) => i !== index));
+  };
+
   return (
-    <div className="w-full max-w-2xl mx-auto p-6 bg-white rounded-2xl shadow-sm border border-slate-100">
-      <div className="text-center mb-8">
-        <h2 className="text-2xl font-semibold text-slate-800 mb-2">Subir Nuevo Ensayo</h2>
-        <p className="text-slate-500">Sube tus archivos PDF para generar un cuestionario interactivo con tutoría de IA.</p>
+    <div className="w-full max-w-3xl mx-auto p-10 bg-white rounded-[2.5rem] shadow-xl border border-slate-100">
+      <div className="text-center mb-10">
+        <h2 className="text-3xl font-black text-slate-800 mb-3 tracking-tight">Portal de Creación Docente</h2>
+        <p className="text-slate-500 font-medium">Sube tus guías en PDF o imágenes separadas para crear tu ensayo.</p>
       </div>
 
-      <div className="space-y-6">
+      <div className="flex bg-slate-100 p-1.5 rounded-2xl mb-10">
+        <button
+          onClick={() => setMode("pdf")}
+          className={cn(
+            "flex-1 flex items-center justify-center space-x-2 py-3 rounded-xl font-black text-sm uppercase tracking-widest transition-all",
+            mode === "pdf" ? "bg-white text-indigo-600 shadow-sm" : "text-slate-500 hover:text-slate-700"
+          )}
+        >
+          <FileUp className="w-4 h-4" />
+          <span>Modo PDF</span>
+        </button>
+        <button
+          onClick={() => setMode("images")}
+          className={cn(
+            "flex-1 flex items-center justify-center space-x-2 py-3 rounded-xl font-black text-sm uppercase tracking-widest transition-all",
+            mode === "images" ? "bg-white text-indigo-600 shadow-sm" : "text-slate-500 hover:text-slate-700"
+          )}
+        >
+          <ImageIcon className="w-4 h-4" />
+          <span>Modo Imágenes</span>
+        </button>
+      </div>
+
+      <div className="space-y-8">
         {/* Quiz Name */}
-        <div className="space-y-2">
-          <label htmlFor="quiz-name" className="block text-sm font-medium text-slate-700">
-            Nombre del Ensayo
+        <div className="space-y-3">
+          <label htmlFor="quiz-name" className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] ml-2">
+            Título del Ensayo
           </label>
           <input
             type="text"
             id="quiz-name"
             value={quizName}
             onChange={(e) => setQuizName(e.target.value)}
-            placeholder="Ej: Ensayo PAES Matemáticas M1 - Forma 113"
-            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all outline-none"
+            placeholder="Ej: Ensayo M1 Matemáticas"
+            className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-50 rounded-2xl focus:bg-white focus:border-indigo-500 transition-all outline-none font-bold text-slate-700"
             disabled={isGenerating}
           />
         </div>
 
-        {/* Questions Upload */}
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-slate-700">
-            PDF de Preguntas (Obligatorio)
-          </label>
-          <div className="relative">
-            <input
-              type="file"
-              accept="application/pdf"
-              onChange={(e) => setQuestionsFile(e.target.files?.[0] || null)}
-              className="hidden"
-              id="questions-upload"
-            />
-            <label
-              htmlFor="questions-upload"
-              className={`flex items-center justify-center w-full p-6 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${
-                questionsFile ? "border-emerald-500 bg-emerald-50" : "border-slate-300 hover:border-indigo-400 hover:bg-slate-50"
-              }`}
-            >
-              <div className="flex flex-col items-center space-y-2 text-center">
-                {questionsFile ? (
-                  <>
-                    <CheckCircle className="w-8 h-8 text-emerald-500" />
-                    <span className="text-emerald-700 font-medium">{questionsFile.name}</span>
-                  </>
-                ) : (
-                  <>
-                    <Upload className="w-8 h-8 text-slate-400" />
-                    <span className="text-slate-600">Haz clic para subir el PDF de preguntas</span>
-                    <span className="text-xs text-slate-400">Solo archivos PDF</span>
-                  </>
-                )}
+        {mode === "pdf" ? (
+          <>
+            {/* Questions Upload */}
+            <div className="space-y-3">
+              <label className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] ml-2">
+                PDF de Preguntas
+              </label>
+              <div className="relative">
+                <input
+                  type="file"
+                  accept="application/pdf"
+                  onChange={(e) => setQuestionsFile(e.target.files?.[0] || null)}
+                  className="hidden"
+                  id="questions-upload"
+                />
+                <label
+                  htmlFor="questions-upload"
+                  className={`flex items-center justify-center w-full p-10 border-2 border-dashed rounded-[2rem] cursor-pointer transition-all ${
+                    questionsFile ? "border-emerald-500 bg-emerald-50/50" : "border-slate-200 hover:border-indigo-400 hover:bg-slate-50"
+                  }`}
+                >
+                  <div className="flex flex-col items-center space-y-3 text-center">
+                    {questionsFile ? (
+                      <>
+                        <CheckCircle className="w-10 h-10 text-emerald-500" />
+                        <span className="text-emerald-700 font-bold text-lg">{questionsFile.name}</span>
+                      </>
+                    ) : (
+                      <>
+                        <FileUp className="w-10 h-10 text-slate-400" />
+                        <span className="text-slate-600 font-bold">Haz clic para subir el PDF</span>
+                      </>
+                    )}
+                  </div>
+                </label>
               </div>
-            </label>
-          </div>
-        </div>
+            </div>
 
-        {/* Solutions Upload */}
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-slate-700">
-            PDF de Solucionario (Opcional)
-          </label>
-          <div className="relative">
-            <input
-              type="file"
-              accept="application/pdf"
-              onChange={(e) => setSolutionsFile(e.target.files?.[0] || null)}
-              className="hidden"
-              id="solutions-upload"
-            />
-            <label
-              htmlFor="solutions-upload"
-              className={`flex items-center justify-center w-full p-6 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${
-                solutionsFile ? "border-emerald-500 bg-emerald-50" : "border-slate-300 hover:border-indigo-400 hover:bg-slate-50"
-              }`}
-            >
-              <div className="flex flex-col items-center space-y-2 text-center">
-                {solutionsFile ? (
-                  <>
-                    <CheckCircle className="w-8 h-8 text-emerald-500" />
-                    <span className="text-emerald-700 font-medium">{solutionsFile.name}</span>
-                  </>
-                ) : (
-                  <>
-                    <FileText className="w-8 h-8 text-slate-400" />
-                    <span className="text-slate-600">Haz clic para subir el PDF del solucionario</span>
-                    <span className="text-xs text-slate-400">Si no lo subes, la IA intentará resolverlas por ti</span>
-                  </>
-                )}
+            {/* Solutions Upload */}
+            <div className="space-y-3">
+              <label className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] ml-2">
+                Solucionario PDF (Opcional)
+              </label>
+              <div className="relative">
+                <input
+                  type="file"
+                  accept="application/pdf"
+                  onChange={(e) => setSolutionsFile(e.target.files?.[0] || null)}
+                  className="hidden"
+                  id="solutions-upload"
+                />
+                <label
+                  htmlFor="solutions-upload"
+                  className={`flex items-center justify-center w-full p-6 border-2 border-dashed rounded-2xl cursor-pointer transition-all ${
+                    solutionsFile ? "border-indigo-500 bg-indigo-50/30" : "border-slate-200 hover:bg-slate-50"
+                  }`}
+                >
+                  <div className="flex flex-col items-center space-y-2 text-center">
+                    {solutionsFile ? (
+                       <span className="text-indigo-700 font-bold">{solutionsFile.name}</span>
+                    ) : (
+                      <>
+                        <FileText className="w-6 h-6 text-slate-300" />
+                        <span className="text-slate-500 font-bold text-sm">Cargar pauta de respuestas</span>
+                      </>
+                    )}
+                  </div>
+                </label>
               </div>
+            </div>
+          </>
+        ) : (
+          <div className="space-y-4">
+            <label className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] ml-2">
+              Fotos de las Preguntas
             </label>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              <AnimatePresence>
+                {individualImages.map((file, idx) => (
+                  <motion.div
+                    key={`${file.name}-${idx}`}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    className="relative aspect-square bg-slate-100 rounded-2xl overflow-hidden group border border-slate-200"
+                  >
+                    <img 
+                      src={URL.createObjectURL(file)} 
+                      alt="preview" 
+                      className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" 
+                    />
+                    <button
+                      onClick={() => removeImage(idx)}
+                      className="absolute top-2 right-2 p-1 bg-white/90 text-red-500 rounded-full shadow-sm hover:bg-white"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                    <div className="absolute bottom-0 left-0 w-full bg-black/50 p-2 text-[10px] text-white font-bold truncate">
+                      {idx + 1}. {file.name}
+                    </div>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+              
+              <label 
+                className="aspect-square border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center text-slate-400 hover:border-indigo-400 hover:text-indigo-600 cursor-pointer bg-slate-50 transition-all hover:bg-slate-100"
+                htmlFor="multi-image-upload"
+              >
+                <ImageIcon className="w-8 h-8 mb-2" />
+                <span className="text-[10px] font-black uppercase tracking-widest text-center px-4">Agregar Fotos</span>
+                <input
+                  type="file"
+                  id="multi-image-upload"
+                  multiple
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
+              </label>
+            </div>
           </div>
-        </div>
+        )}
+
+        {isGenerating && (
+          <div className="space-y-4 pt-4">
+             <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                   <Loader2 className="w-5 h-5 text-indigo-600 animate-spin" />
+                   <span className="text-sm font-black text-slate-700">{statusText}</span>
+                </div>
+                <span className="text-sm font-black text-indigo-600">{progress}%</span>
+             </div>
+             <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden p-0.5 border border-slate-200/50">
+                <motion.div 
+                   initial={{ width: 0 }}
+                   animate={{ width: `${progress}%` }}
+                   className="h-full bg-indigo-600 rounded-full shadow-lg shadow-indigo-200"
+                />
+             </div>
+          </div>
+        )}
 
         {error && (
-          <div className="p-4 bg-red-50 text-red-700 rounded-xl text-sm">
-            {error}
+          <div className="p-5 bg-rose-50 border border-rose-100 text-rose-600 rounded-2xl text-sm font-bold">
+             {error}
           </div>
         )}
 
         <button
           onClick={handleGenerate}
-          disabled={!questionsFile || !quizName.trim() || isGenerating}
-          className="w-full py-4 px-6 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-medium rounded-xl transition-colors flex items-center justify-center space-x-2"
+          disabled={isGenerating || (!questionsFile && individualImages.length === 0)}
+          className="w-full btn-premium py-5 text-xl mt-6 shadow-2xl shadow-indigo-100"
         >
           {isGenerating ? (
-            <>
-              <Loader2 className="w-5 h-5 animate-spin" />
-              <span>{statusText || "Procesando..."}</span>
-            </>
+              <span>Procesando...</span>
           ) : (
-            <span>Generar Cuestionario</span>
+            <>
+               <Sparkles className="w-6 h-6" />
+               <span>Generar Cuestionario IA</span>
+            </>
           )}
         </button>
       </div>

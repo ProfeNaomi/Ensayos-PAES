@@ -10,8 +10,8 @@ export async function pdfToImages(pdfFile: File): Promise<string[]> {
   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
   const images: string[] = [];
 
-  // Tomamos solo las primeras 10 páginas para no saturar la API (suficiente para la mayoría de ensayos)
-  const numPages = Math.min(pdf.numPages, 10);
+  // Tomamos todas las páginas disponibles para ensayos completos
+  const numPages = pdf.numPages;
 
   for (let i = 1; i <= numPages; i++) {
     const page = await pdf.getPage(i);
@@ -46,7 +46,7 @@ export async function extractQuestionImages(pdfFile: File, questions: QuizQuesti
 
       let [ymin, xmin, ymax, xmax] = q.box;
       // Capturamos el 100% del ANCHO de la página para no perder alternativas laterales
-      const V_PADDING = 100; 
+      const V_PADDING = 120; 
       const realYmin = Math.max(0, ymin - V_PADDING);
       const realYmax = Math.min(1000, ymax + V_PADDING);
 

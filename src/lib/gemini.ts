@@ -11,39 +11,49 @@ export interface QuizQuestion {
 
 // Helper para limpiar y parsear JSON de forma robusta
 function cleanAndParseJSON(text: string) {
-  // 1. Quitar bloques de código markdown (```json ... ```) e intentar limpiar basura
-  let cleaned = text.replace(/```json\n?/, "").replace(/\n?```/, "").trim();
+  let cleaned = text.trim();
   
-  // 2. Corregir el error de "Bad escaped character" (común con fórmulas LaTeX)
-  // Reemplazamos \ por \\ solo si no están ya escapados o no son parte de un escape válido
-  // Esta es la parte más difícil. Una forma segura es buscar backslashes que NO sean seguidos por n, r, t, f, b, ", \ o u
-  cleaned = cleaned.replace(/\\(?![nrftb"\\\/]|u[0-9a-fA-F]{4})/g, "\\\\");
-
-  // 3. Si la IA usó paréntesis en lugar de corchetes para los arrays (error común), los corregimos
-  cleaned = cleaned.replace(/:\s*\(([^)]+)\)/g, ': [$1]');
-
-  // 4. Buscar el inicio y fin del JSON real
-  const lastBracket = cleaned.lastIndexOf(']');
-  const lastBrace = cleaned.lastIndexOf('}');
-  const firstBracket = cleaned.indexOf('[');
-  const firstBrace = cleaned.indexOf('{');
+  // 1. Quitar bloques de código markdown si los hay
+  cleaned = cleaned.replace(/^```[a-z]*\s*/i, "").replace(/\s*```$/i, "").trim();
+  
+  // 2. Intentar encontrar el objeto o array JSON real si hay texto extra
+  const startBrace = cleaned.indexOf('{');
+  const startBracket = cleaned.indexOf('[');
+  const endBrace = cleaned.lastIndexOf('}');
+  const endBracket = cleaned.lastIndexOf(']');
 
   let start = -1;
   let end = -1;
 
-  if (firstBracket !== -1 && (firstBrace === -1 || firstBracket < firstBrace)) {
-    start = firstBracket;
-    end = lastBracket;
-  } else {
-    start = firstBrace;
-    end = lastBrace;
+  if (startBrace !== -1 && (startBracket === -1 || (startBrace < startBracket && startBrace !== -1))) {
+    start = startBrace;
+    end = endBrace;
+  } else if (startBracket !== -1) {
+    start = startBracket;
+    end = endBracket;
   }
 
-  if (start !== -1 && end !== -1) {
+  if (start !== -1 && end !== -1 && end > start) {
     cleaned = cleaned.substring(start, end + 1);
   }
 
-  return JSON.parse(cleaned);
+  // 3. CORRECCIÓN PARA CONTROL CHARACTERS: Eliminar caracteres invisibles que rompen JSON.parse
+  // Conservamos \n, \r, \t
+  cleaned = cleaned.replace(/[\u0000-\u0009\u000B-\u000C\u000E-\u001F\u007F-\u009F]/g, "");
+
+  try {
+    return JSON.parse(cleaned);
+  } catch (error) {
+    console.error("Fallo parseo inicial, intentando corrección de escapes...", error);
+    try {
+      // Intento final: corregir backslashes perdidos si la IA no los escapó bien
+      // Pero solo si no están ya escapados
+      const fixed = cleaned.replace(/(?<!\\)\\(?!["\\\/bfnrtu])/g, "\\\\");
+      return JSON.parse(fixed);
+    } catch (e2) {
+      throw error;
+    }
+  }
 }
 
 export async function generateQuizFromImages(
@@ -56,14 +66,16 @@ export async function generateQuizFromImages(
   const messages: any[] = [
     {
       role: "system",
-      content: `Eres un experto en digitalizar ensayos PAES de Matemáticas.
+      content: `Eres un experto en digitalizar ensayos PAES de Matemáticas y RESOLVERLOS.
       TU MISIÓN: Extraer cada pregunta con su número original, texto, opciones y ubicación exacta.
       
       REGLAS DE ORO:
-      1. IDENTIFICACIÓN: Busca el número (1, 2, 3...) al inicio de cada pregunta y úsalo como "id".
-      2. ÁREA DE CAPTURA (box): El "box" debe ser amplio [ymin, xmin, ymax, xmax]. Debe incluir TODO el enunciado, gráficos, tablas y las 4 o 5 opciones (A, B, C, D, E).
-      3. LATEX: Usa $ para TODA expresión matemática.
-      4. JSON PURO: Responde solo con el objeto JSON.`
+      1. RESOLVER: Debes resolver matemáticamente cada ejercicio para encontrar la respuesta correcta.
+      2. MARCAS DEL USUARIO: Si en la imagen hay un círculo, una cruz o un visto sobre una alternativa, esa MANDA y es la "correcta".
+      3. IDENTIFICACIÓN: Usa el número real de la pregunta como "id".
+      4. ÁREA DE CAPTURA (box): Incluye enunciado y TODAS las opciones.
+      5. LATEX: Usa $ para TODA expresión matemática, fórmula, símbolo o número solo (Ej: $x$, $\frac{1}{2}$, $5$). NO uses doble barra \\\\ a menos que sea estrictamente necesario para el JSON.
+      6. JSON PURO: Responde solo con el objeto JSON válido.`
     },
     {
       role: "user",
@@ -74,12 +86,12 @@ export async function generateQuizFromImages(
           {
             "questions": [
               {
-                "id": number (número real que aparece en el PDF),
-                "pageIndex": number (índice de imagen, empezando en 0),
-                "box": [ymin, xmin, ymax, xmax] (0-1000, cubriendo TODA la pregunta y sus opciones),
-                "text": "Texto completo de la pregunta",
-                "options": ["Opción A", "Opción B", "Opción C", "Opción D"],
-                "correctOptionIndex": number (0-4)
+                "id": number,
+                "pageIndex": number,
+                "box": [ymin, xmin, ymax, xmax],
+                "text": "Texto con LaTeX $...$",
+                "options": ["Opción A con $...$", "Opción B", "Opción C", "Opción D"],
+                "correctOptionIndex": number
               }
             ]
           }`
@@ -122,7 +134,7 @@ export async function generateQuizFromImages(
       model: "google/gemini-2.0-flash-001",
       messages: messages,
       response_format: { type: "json_object" },
-      max_tokens: 8192 // Aumentamos al máximo para evitar cortes
+      max_tokens: 8192 
     })
   });
 
@@ -135,7 +147,7 @@ export async function generateQuizFromImages(
     return parsed.questions || parsed;
   } catch (e: any) {
     console.error("AI Response:", rawContent);
-    throw new Error(`Error de formato en la respuesta de la IA: ${e.message}. Prueba con un PDF más claro o con menos preguntas.`);
+    throw new Error(`Error de formato en la respuesta de la IA: ${e.message}.`);
   }
 }
 
@@ -158,7 +170,8 @@ export async function chatWithTutor(
   TU OBJETIVO: Empatiza con el error del alumno. NO des la respuesta correcta directamente. Guía al alumno con preguntas para que él mismo descubra su error o el camino correcto.
   
   REGLAS DE ESTILO:
-  - Usa LaTeX $...$ para TODAS las fórmulas, números solitarios o expresiones matemáticas.
+  - USA LATEX: Envuelve TODA fórmula, símbolo matemático, variable o número entre símbolos de peso simples: $...$ (Ej: $x$, $y$, $\\frac{a}{b}$, $5$).
+  - NUNCA uses doble barra invertida fuera de LaTeX.
   - Habla como un chileno buena onda ("ya po", "mira", "fíjate bien", "no te preocupes", "vamos que se puede").
   - Sé breve y directo en cada mensaje para fomentar el diálogo.`;
 
