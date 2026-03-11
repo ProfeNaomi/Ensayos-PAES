@@ -11,18 +11,22 @@ export interface QuizQuestion {
 
 // Helper para limpiar y parsear JSON de forma robusta
 function cleanAndParseJSON(text: string) {
-  // 1. Quitar bloques de código markdown (```json ... ```)
+  // 1. Quitar bloques de código markdown (```json ... ```) e intentar limpiar basura
   let cleaned = text.replace(/```json\n?/, "").replace(/\n?```/, "").trim();
   
-  // 2. Si la IA usó paréntesis en lugar de corchetes para los arrays (error común), los corregimos
-  // Buscamos patrones como : (1, 2, 3) y los cambiamos por : [1, 2, 3]
+  // 2. Corregir el error de "Bad escaped character" (común con fórmulas LaTeX)
+  // Reemplazamos \ por \\ solo si no están ya escapados o no son parte de un escape válido
+  // Esta es la parte más difícil. Una forma segura es buscar backslashes que NO sean seguidos por n, r, t, f, b, ", \ o u
+  cleaned = cleaned.replace(/\\(?![nrftb"\\\/]|u[0-9a-fA-F]{4})/g, "\\\\");
+
+  // 3. Si la IA usó paréntesis en lugar de corchetes para los arrays (error común), los corregimos
   cleaned = cleaned.replace(/:\s*\(([^)]+)\)/g, ': [$1]');
 
-  // 3. Intentar encontrar el inicio y fin del JSON real por si hay texto extra
-  const firstBracket = cleaned.indexOf('[');
-  const firstBrace = cleaned.indexOf('{');
+  // 4. Buscar el inicio y fin del JSON real
   const lastBracket = cleaned.lastIndexOf(']');
   const lastBrace = cleaned.lastIndexOf('}');
+  const firstBracket = cleaned.indexOf('[');
+  const firstBrace = cleaned.indexOf('{');
 
   let start = -1;
   let end = -1;
