@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Upload, FileText, CheckCircle, Loader2 } from "lucide-react";
 import { fileToBase64 } from "../lib/utils";
-import { generateQuizFromPDFs, QuizQuestion } from "../lib/gemini";
+import { generateQuizFromImages, QuizQuestion } from "../lib/gemini";
 import { extractQuestionImages } from "../lib/pdf";
 import { saveQuiz, Quiz } from "../lib/db";
 import { v4 as uuidv4 } from "uuid";
@@ -25,11 +25,15 @@ export function QuizSetup({ onQuizGenerated }: QuizSetupProps) {
     setError(null);
 
     try {
-      setStatusText("Analizando PDFs con IA...");
-      const questionsBase64 = await fileToBase64(questionsFile);
-      const solutionsBase64 = solutionsFile ? await fileToBase64(solutionsFile) : null;
+      setStatusText("Procesando PDF (Páginas a Imágenes)...");
+      const { pdfToImages } = await import("../lib/pdf");
+      const { generateQuizFromImages } = await import("../lib/gemini");
+      
+      const questionImages = await pdfToImages(questionsFile);
+      const solutionImages = solutionsFile ? await pdfToImages(solutionsFile) : [];
 
-      const questions = await generateQuizFromPDFs(questionsBase64, solutionsBase64);
+      setStatusText("La IA está extrayendo las preguntas (esto puede tardar)...");
+      const questions = await generateQuizFromImages(questionImages, solutionImages);
       
       if (questions.length === 0) {
         setError("No se pudieron extraer preguntas del documento. Asegúrate de que sea un PDF válido con preguntas tipo PAES.");

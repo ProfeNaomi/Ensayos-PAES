@@ -9,9 +9,9 @@ export interface QuizQuestion {
   imageBase64?: string;
 }
 
-export async function generateQuizFromPDFs(
-  questionsPdfBase64: string,
-  solutionsPdfBase64: string | null
+export async function generateQuizFromImages(
+  questionImages: string[],
+  solutionImages: string[]
 ): Promise<QuizQuestion[]> {
   const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY;
   if (!apiKey) throw new Error("VITE_OPENROUTER_API_KEY no configurada");
@@ -19,7 +19,7 @@ export async function generateQuizFromPDFs(
   const messages: any[] = [
     {
       role: "system",
-      content: "Eres un experto transcriptor y docente de matemáticas chileno. Extrae TODAS las preguntas de opción múltiple del ensayo PAES."
+      content: "Eres un experto transcriptor y docente de matemáticas chileno. Extrae TODAS las preguntas de opción múltiple de las imágenes del ensayo PAES."
     },
     {
       role: "user",
@@ -27,45 +27,47 @@ export async function generateQuizFromPDFs(
         {
           type: "text",
           text: `INSTRUCCIONES CRÍTICAS:
-          1. Transcribe el texto de cada pregunta exactamente como aparece.
-          2. Si hay gráficas o tablas, inclúyelas en el 'box'.
-          3. Todas las fórmulas en LaTeX con $.
-          4. Generar JSON con este esquema: Array<{id, pageIndex, box: [ymin, xmin, ymax, xmax], text, options, correctOptionIndex, explanation}>.
-          5. El 'box' son coordenadas normalizadas 0-1000.`
-        },
-        {
-          type: "image_url",
-          image_url: {
-            url: `data:application/pdf;base64,${questionsPdfBase64}`
-          }
+          1. Transcribe el texto de cada pregunta exactamente como aparece. Incluye fórmulas LaTeX con $.
+          2. Generar JSON con este esquema: Array<{id, pageIndex, box: [ymin, xmin, ymax, xmax], text, options, correctOptionIndex, explanation}>.
+          3. 'pageIndex' es el índice de la imagen (empezando en 0).
+          4. El 'box' son coordenadas normalizadas 0-1000 que encierran el texto y dibujos de la pregunta.`
         }
       ]
     }
   ];
 
-  if (solutionsPdfBase64) {
-    messages[1].content.push({
-      type: "image_url",
-      image_url: {
-        url: `data:application/pdf;base64,${solutionsPdfBase64}`
-      }
-    });
+  // Añadir imágenes de preguntas
+  questionImages.forEach((img, idx) => {
     messages[1].content.push({
       type: "text",
-      text: "Usa el segundo PDF solo para claves y explicaciones."
+      text: `--- PÁGINA ${idx} (PREGUNTAS) ---`
     });
-  }
+    messages[1].content.push({
+      type: "image_url",
+      image_url: { url: img }
+    });
+  });
+
+  // Añadir imágenes de soluciones/claves
+  solutionImages.forEach((img, idx) => {
+    messages[1].content.push({
+      type: "text",
+      text: `--- PÁGINA ${idx} (CLAVES/SOLUCIONES) ---`
+    });
+    messages[1].content.push({
+      type: "image_url",
+      image_url: { url: img }
+    });
+  });
 
   const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
     headers: {
       "Authorization": `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-      "HTTP-Referer": "https://paes-tutor.vercel.app", // Opcional
-      "X-Title": "PAES Tutor IA"
+      "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      model: "google/gemini-2.0-flash-001", // Versión 2.0 más estable en OpenRouter
+      model: "google/gemini-2.0-flash-001",
       messages: messages,
       response_format: { type: "json_object" }
     })
@@ -75,7 +77,13 @@ export async function generateQuizFromPDFs(
   if (data.error) throw new Error(data.error.message);
   
   const rawContent = data.choices[0].message.content;
-  return JSON.parse(rawContent).questions || JSON.parse(rawContent);
+  try {
+    const parsed = JSON.parse(rawContent);
+    return parsed.questions || parsed;
+  } catch (e) {
+    console.error("Failed to parse AI response", rawContent);
+    throw new Error("La IA respondió en un formato inválido. Intenta con un PDF más corto.");
+  }
 }
 
 export async function chatWithTutor(
@@ -112,11 +120,11 @@ export async function chatWithTutor(
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      model: "deepseek/deepseek-r1", // DeepSeek R1 original
+      model: "deepseek/deepseek-r1",
       messages: messages,
       stream: true
     })
   });
 
-  return response; // Devolvemos el stream para que la UI lo maneje
+  return response;
 }

@@ -5,6 +5,29 @@ import { QuizQuestion } from './gemini';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
 
+export async function pdfToImages(pdfFile: File): Promise<string[]> {
+  const arrayBuffer = await pdfFile.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  const images: string[] = [];
+
+  // Tomamos solo las primeras 10 páginas para no saturar la API (suficiente para la mayoría de ensayos)
+  const numPages = Math.min(pdf.numPages, 10);
+
+  for (let i = 1; i <= numPages; i++) {
+    const page = await pdf.getPage(i);
+    const viewport = page.getViewport({ scale: 1.5 });
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d')!;
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+
+    await page.render({ canvasContext: ctx, viewport, canvas }).promise;
+    images.push(canvas.toDataURL('image/jpeg', 0.8));
+  }
+
+  return images;
+}
+
 export async function extractQuestionImages(pdfFile: File, questions: QuizQuestion[]): Promise<QuizQuestion[]> {
   const arrayBuffer = await pdfFile.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
