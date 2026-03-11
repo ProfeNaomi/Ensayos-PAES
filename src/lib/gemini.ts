@@ -1,6 +1,6 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
 
 export interface QuizQuestion {
   id: number;
@@ -106,7 +106,7 @@ export async function generateQuizFromPDFs(
   });
 
   const response = await ai.models.generateContent({
-    model: "gemini-1.5-flash",
+    model: "models/gemini-1.5-flash",
     contents: { parts },
     config: {
       maxOutputTokens: 16384,
@@ -189,7 +189,7 @@ export async function chatWithTutor(
   });
 
   const response = await ai.models.generateContentStream({
-    model: "gemini-1.5-flash",
+    model: "models/gemini-1.5-flash",
     contents,
     config: {
       systemInstruction: {
