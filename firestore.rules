@@ -1,0 +1,18 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /quizzes/{quizId} {
+      // Quizzes are readable by everyone (students and teachers)
+      allow read: if true;
+      
+      // Only authenticated users (teachers) can create, update, or delete quizzes
+      allow write, delete: if request.auth != null;
+    }
+    
+    // Default to closed for any other collection
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
