@@ -90,18 +90,17 @@ export function QuizRunner({ questions, onRestart }: QuizRunnerProps) {
 
   return (
     <div className="w-full h-full flex flex-col lg:flex-row bg-slate-50 overflow-hidden">
-      {/* Question Column - 75% Width */}
-      <div className="w-full lg:w-[75%] h-full overflow-y-auto p-4 md:p-10 border-r border-slate-200">
-        <div className="max-w-5xl mx-auto space-y-6 pb-20">
+      <div className="w-full lg:w-[75%] h-full overflow-y-auto p-4 md:p-8 border-r border-slate-200 custom-scrollbar">
+        <div className="w-full space-y-6 pb-20">
           <motion.div 
             key={currentIndex}
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white p-6 md:p-12 rounded-[2.5rem] shadow-2xl shadow-slate-200/40 border border-slate-100"
+            className="w-full"
           >
-            <div className="flex items-center justify-between mb-10">
+            <div className="flex items-center justify-between mb-6">
               <div className="flex items-center space-x-4">
-                <span className="text-sm font-black text-indigo-600 bg-indigo-50 px-6 py-2.5 rounded-2xl border border-indigo-100/50">
+                <span className="text-sm font-black text-indigo-600 bg-indigo-50 px-5 py-2 rounded-xl border border-indigo-100">
                   PREGUNTA {question.id || currentIndex + 1}
                 </span>
                 <div className="flex space-x-1.5">
@@ -109,33 +108,36 @@ export function QuizRunner({ questions, onRestart }: QuizRunnerProps) {
                     <div 
                       key={i} 
                       className={cn(
-                        "w-2.5 h-2.5 rounded-full transition-all duration-500",
-                        i === currentIndex ? "w-10 bg-indigo-600 shadow-lg shadow-indigo-100" : i < currentIndex ? "bg-emerald-400" : "bg-slate-200"
+                        "w-2 h-2 rounded-full transition-all duration-500",
+                        i === currentIndex ? "w-8 bg-indigo-600" : i < currentIndex ? "bg-emerald-400" : "bg-slate-200"
                       )}
                     />
                   ))}
                 </div>
               </div>
-              <div className="flex items-center space-x-2 bg-slate-50 px-4 py-2 rounded-xl border border-slate-100">
-                <Sparkles className="w-4 h-4 text-indigo-500" />
+              <div className="flex items-center space-x-2 bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-100">
+                <Sparkles className="w-4 h-4 text-amber-500" />
                 <span className="text-xs font-black text-slate-500 uppercase tracking-widest">
-                  {score} Aciertos
+                  {score}/{questions.length} Correctas
                 </span>
               </div>
             </div>
 
-            {/* Question Box - Taking full advantage of 75% width */}
-            <div className="mb-12">
+            {/* Question Area - Max usage of space */}
+            <div className="mb-8">
               {question.imageBase64 ? (
-                <div className="rounded-3xl overflow-hidden border-2 border-slate-100 bg-white shadow-inner p-2">
+                <div className="bg-white rounded-[2rem] shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden relative group">
                   <img 
                     src={question.imageBase64} 
                     alt="Pregunta" 
-                    className="w-full max-h-[65vh] object-contain mx-auto transition-transform hover:scale-[1.02] duration-500"
+                    className="w-full object-contain max-h-[70vh] block mx-auto py-4 px-2"
                   />
+                  <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                     <span className="bg-slate-900/10 backdrop-blur-md text-[10px] font-bold px-2 py-1 rounded text-slate-600">Captura Original</span>
+                  </div>
                 </div>
               ) : (
-                <div className="prose prose-slate prose-xl max-w-none font-medium leading-relaxed">
+                <div className="bg-white p-10 rounded-[2rem] shadow-xl shadow-slate-200/50 border border-slate-100 prose prose-slate prose-xl max-w-none font-medium">
                   <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
                     {question.text}
                   </ReactMarkdown>

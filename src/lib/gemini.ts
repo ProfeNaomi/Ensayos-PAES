@@ -178,9 +178,11 @@ export async function chatWithTutor(
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      model: "deepseek/deepseek-r1",
+      model: "google/gemini-2.0-flash-001",
       messages: messages,
-      stream: true
+      stream: true,
+      max_tokens: 1500,
+      temperature: 0.7
     })
   });
 

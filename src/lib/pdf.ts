@@ -45,19 +45,17 @@ export async function extractQuestionImages(pdfFile: File, questions: QuizQuesti
       await page.render({ canvasContext: ctx, viewport, canvas }).promise;
 
       let [ymin, xmin, ymax, xmax] = q.box;
-      // Precision padding: Ensuring we grab context around the question
-      const PADDING = 60; 
-      const realYmin = Math.max(0, ymin - PADDING);
-      const realXmin = Math.max(0, xmin - PADDING / 2);
-      const realYmax = Math.min(1000, ymax + PADDING);
-      const realXmax = Math.min(1000, xmax + PADDING / 2);
+      // Capturamos el 100% del ANCHO de la página para no perder alternativas laterales
+      const V_PADDING = 100; 
+      const realYmin = Math.max(0, ymin - V_PADDING);
+      const realYmax = Math.min(1000, ymax + V_PADDING);
 
-      const cropX = (realXmin / 1000) * canvas.width;
+      const cropX = 0; // Desde el borde izquierdo
       const cropY = (realYmin / 1000) * canvas.height;
-      const cropW = ((realXmax - realXmin) / 1000) * canvas.width;
+      const cropW = canvas.width; // Todo el ancho
       const cropH = ((realYmax - realYmin) / 1000) * canvas.height;
 
-      if (cropW < 10 || cropH < 10) throw new Error("Recorte inválido");
+      if (cropH < 10) throw new Error("Recorte inválido");
 
       const cropCanvas = document.createElement('canvas');
       cropCanvas.width = cropW;
