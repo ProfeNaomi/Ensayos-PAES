@@ -2,16 +2,29 @@ import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
+// Usamos variables de entorno para mayor seguridad y flexibilidad
 const firebaseConfig = {
-  projectId: "appmatematicaescolar",
-  appId: "1:475003111009:web:b87353b9ddb8c4bcfc0c20",
-  storageBucket: "appmatematicaescolar.firebasestorage.app",
-  apiKey: "AIzaSyBhKvNKM7_ov4Ud5JCrf9nqglB304Uzqp0",
-  authDomain: "appmatematicaescolar.firebaseapp.com",
-  messagingSenderId: "475003111009",
-  measurementId: "G-J8D19SB4LJ"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
-const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-export const db = getFirestore(app);
+// Solo inicializar si tenemos las claves, sino exportar null para el fallback
+let app;
+let auth: any = null;
+let db: any = null;
+
+try {
+  if (firebaseConfig.apiKey) {
+    app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    db = getFirestore(app);
+  }
+} catch (e) {
+  console.warn("Firebase no configurado correctamente. Usando modo offline.");
+}
+
+export { auth, db };
