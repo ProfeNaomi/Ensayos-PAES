@@ -25,29 +25,58 @@ export function AITutor({ question, userWrongAnswerIndex }: AITutorProps) {
 
   // Initial message from the tutor
   useEffect(() => {
-    const initTutor = async () => {
-      setIsLoading(true);
+    const fetchAndStream = async (history: Message[], userMsg: string) => {
       try {
-        const stream = await chatWithTutor(question, userWrongAnswerIndex, [], "¡Hola! Me equivoqué en esta pregunta. ¿Me ayudas?");
-        
+        const response = await chatWithTutor(question, userWrongAnswerIndex, history, userMsg);
+        const reader = response.body?.getReader();
+        if (!reader) throw new Error("No se pudo obtener el reader del stream");
+
+        const decoder = new TextDecoder();
         let fullText = "";
-        setMessages([{ role: "user", text: "¡Hola! Me equivoqué en esta pregunta. ¿Me ayudas?" }, { role: "model", text: "" }]);
-        
-        for await (const chunk of stream) {
-          const chunkText = (chunk as any).text || "";
-          fullText += chunkText;
-          setMessages((prev) => {
-            const newMessages = [...prev];
-            newMessages[newMessages.length - 1].text = fullText;
-            return newMessages;
-          });
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value);
+          const lines = chunk.split("\n");
+
+          for (const line of lines) {
+            if (line.startsWith("data: ")) {
+              const data = line.slice(6);
+              if (data === "[DONE]") break;
+              try {
+                const parsed = JSON.parse(data);
+                const content = parsed.choices[0]?.delta?.content || "";
+                fullText += content;
+                setMessages((prev) => {
+                  const newMessages = [...prev];
+                  newMessages[newMessages.length - 1].text = fullText;
+                  return newMessages;
+                });
+              } catch (e) {
+                // Skip partial chunks
+              }
+            }
+          }
         }
       } catch (error) {
         console.error(error);
-        setMessages((prev) => [...prev, { role: "model", text: "Hubo un error al conectar con el tutor. Por favor, intenta de nuevo." }]);
+        setMessages((prev) => {
+          const newMessages = [...prev];
+          newMessages[newMessages.length - 1].text = "Hubo un error al conectar con el tutor.";
+          return newMessages;
+        });
       } finally {
         setIsLoading(false);
       }
+    };
+
+    const initTutor = async () => {
+      setIsLoading(true);
+      const welcomeMsg = "¡Hola! Me equivoqué en esta pregunta. ¿Me ayudas?";
+      setMessages([{ role: "user", text: welcomeMsg }, { role: "model", text: "" }]);
+      await fetchAndStream([], welcomeMsg);
     };
 
     initTutor();
@@ -70,29 +99,53 @@ export function AITutor({ question, userWrongAnswerIndex }: AITutorProps) {
     setMessages((prev) => [...prev, { role: "user", text: userMsg }, { role: "model", text: "" }]);
     setIsLoading(true);
 
-    try {
-      const stream = await chatWithTutor(question, userWrongAnswerIndex, historyToSend, userMsg);
-      
-      let fullText = "";
-      for await (const chunk of stream) {
-        const chunkText = (chunk as any).text || "";
-        fullText += chunkText;
+    // Reuse the streaming logic defined in useEffect
+    const fetchAndStream = async (history: Message[], userMsg: string) => {
+      try {
+        const response = await chatWithTutor(question, userWrongAnswerIndex, history, userMsg);
+        const reader = response.body?.getReader();
+        if (!reader) throw new Error("No reader");
+
+        const decoder = new TextDecoder();
+        let fullText = "";
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value);
+          const lines = chunk.split("\n");
+
+          for (const line of lines) {
+            if (line.startsWith("data: ")) {
+              const data = line.slice(6);
+              if (data === "[DONE]") break;
+              try {
+                const parsed = JSON.parse(data);
+                const content = parsed.choices[0]?.delta?.content || "";
+                fullText += content;
+                setMessages((prev) => {
+                  const newMessages = [...prev];
+                  newMessages[newMessages.length - 1].text = fullText;
+                  return newMessages;
+                });
+              } catch (e) { }
+            }
+          }
+        }
+      } catch (error) {
+        console.error(error);
         setMessages((prev) => {
           const newMessages = [...prev];
-          newMessages[newMessages.length - 1].text = fullText;
+          newMessages[newMessages.length - 1].text = "Hubo un error al conectar con el tutor.";
           return newMessages;
         });
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      console.error(error);
-      setMessages((prev) => {
-        const newMessages = [...prev];
-        newMessages[newMessages.length - 1].text = "Hubo un error al conectar con el tutor.";
-        return newMessages;
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    };
+
+    await fetchAndStream(historyToSend, userMsg);
   };
 
   return (
