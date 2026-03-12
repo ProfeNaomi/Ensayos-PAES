@@ -58,7 +58,8 @@ function cleanAndParseJSON(text: string) {
 
 export async function generateQuizFromImages(
   questionImages: string[],
-  solutionImages: string[]
+  solutionImages: string[],
+  manualAnswers?: number[]
 ): Promise<QuizQuestion[]> {
   const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY;
   if (!apiKey) throw new Error("VITE_OPENROUTER_API_KEY no configurada");
@@ -66,15 +67,15 @@ export async function generateQuizFromImages(
   const messages: any[] = [
     {
       role: "system",
-      content: `Eres un experto en digitalizar ensayos PAES de Matemáticas y RESOLVERLOS.
-      TU MISIÓN: Extraer cada pregunta con su número original, texto, opciones y ubicación exacta.
+      content: `Eres un experto en digitalizar ensayos PAES de Matemáticas.
+      TU MISIÓN: Extraer cada pregunta con su número original (si existe), enunciado completo, todas las opciones y ubicación exacta.
       
       REGLAS DE ORO:
-      1. RESOLVER: Debes resolver matemáticamente cada ejercicio para encontrar la respuesta correcta.
-      2. MARCAS DEL USUARIO: Si en la imagen hay un círculo, una cruz o un visto sobre una alternativa, esa MANDA y es la "correcta".
+      1. RESPUESTAS: ${manualAnswers ? 'Se te han proporcionado las respuestas correctas para cada imagen en orden. ÚSALAS para generar la explicación.' : 'Si no hay claves, resuelve matemáticamente para encontrar la correcta.'}
+      2. MARCAS DEL USUARIO: Ignora marcas manuales (rayas, círculos) a menos que se te indique. Confía en la lógica matemática o en la clave provista.
       3. IDENTIFICACIÓN: Usa el número real de la pregunta como "id".
       4. ÁREA DE CAPTURA (box): Incluye enunciado y TODAS las opciones.
-      5. LATEX: Usa $ para TODA expresión matemática, fórmula, símbolo o número solo (Ej: $x$, $\frac{1}{2}$, $5$). NO uses doble barra \\\\ a menos que sea estrictamente necesario para el JSON.
+      5. LATEX: Usa $ para TODA expresión matemática, fórmula o número (Ej: $x$, $\\frac{1}{2}$, $5$).
       6. JSON PURO: Responde solo con el objeto JSON válido.`
     },
     {
@@ -96,9 +97,15 @@ export async function generateQuizFromImages(
             ]
           }`
         }
-      ]
     }
   ];
+
+  if (manualAnswers) {
+    messages[1].content.push({
+      type: "text",
+      text: `CLAVES PROVISTAS (Usa estos índices para "correctOptionIndex"): ${manualAnswers.join(", ")}`
+    });
+  }
 
   // Añadir imágenes de preguntas
   questionImages.forEach((img, idx) => {

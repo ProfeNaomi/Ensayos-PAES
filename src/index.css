@@ -10,8 +10,11 @@
 
 @layer base {
   body {
-    @apply antialiased bg-slate-50 text-slate-900;
+    @apply antialiased text-slate-900;
     font-family: var(--font-sans);
+    background: radial-gradient(circle at top right, #f0f9ff, #ffffff);
+    background-attachment: fixed;
+    min-height: 100vh;
   }
 
   h1, h2, h3, h4, .font-display {
