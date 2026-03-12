@@ -156,12 +156,12 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-transparent text-slate-100 selection:bg-indigo-500/30 selection:text-indigo-200">
+    <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-indigo-100 selection:text-indigo-900">
       {/* Panel de Sesión y Debug (Solo visible si hay usuario) - ELIMINADO */}
       <div className="fixed top-4 right-4 z-[60] flex flex-col items-end space-y-2 pointer-events-none">
       </div>
 
-      <header className="bg-slate-950/40 backdrop-blur-md border-b border-indigo-500/20 sticky top-0 z-40">
+      <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           <div 
             className="flex items-center space-x-3 cursor-pointer group"
@@ -171,12 +171,12 @@ export default function App() {
               setShowStats(false);
             }}
           >
-            <div className="w-11 h-11 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-[0_0_20px_rgba(79,70,229,0.5)] group-hover:scale-110 transition-transform duration-300">
+            <div className="w-11 h-11 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-indigo-100 group-hover:scale-110 transition-transform duration-300">
               <BookOpen className="w-6 h-6" />
             </div>
             <div>
-              <h1 className="text-lg font-black text-slate-100 tracking-tight leading-none">
-                Plataforma de ejercitación<br/><span className="text-indigo-400">Profe Naomi</span>
+              <h1 className="text-lg font-black text-slate-800 tracking-tight leading-none">
+                Plataforma de ejercitación<br/><span className="text-indigo-600">Profe Naomi</span>
               </h1>
             </div>
           </div>
@@ -189,7 +189,7 @@ export default function App() {
                       onClick={() => { setShowStats(!showStats); setCurrentQuiz(null); setIsCreating(false); }}
                       className={cn(
                         "p-3 rounded-2xl transition-all border",
-                        showStats ? "bg-indigo-500/20 border-indigo-500/50 text-indigo-300" : "bg-slate-900/50 border-slate-700/50 text-slate-400 hover:text-indigo-300"
+                        showStats ? "bg-indigo-50 border-indigo-200 text-indigo-600" : "bg-white border-slate-200 text-slate-500 hover:text-indigo-600"
                       )}
                     >
                       <BarChart3 className="w-5 h-5" />
@@ -197,7 +197,7 @@ export default function App() {
                   )}
                   <div className="hidden sm:block text-right">
                     <p className="text-xs font-black text-slate-400 uppercase tracking-widest leading-none mb-1">{isActuallyTeacher ? 'Docente' : 'Alumno'}</p>
-                    <p className="text-sm font-bold text-slate-200">{userProfile?.displayName || user.email}</p>
+                    <p className="text-sm font-bold text-slate-700">{userProfile?.displayName || user.email}</p>
                   </div>
                   <button
                     onClick={handleLogout}

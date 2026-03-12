@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { QuizQuestion } from "../lib/gemini";
 import { AITutor } from "./AITutor";
-import { CheckCircle, XCircle, ArrowRight, ArrowLeft, RotateCcw, Bot, Trophy, Info, Sparkles, ShieldCheck } from "lucide-react";
+import { CheckCircle, XCircle, ArrowRight, ArrowLeft, RotateCcw, Bot, Trophy, Info, Sparkles, ShieldCheck, Check } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
@@ -86,40 +86,40 @@ export function QuizRunner({ questions, quizId, quizTitle, user, onRestart }: Qu
 
   if (!questions || questions.length === 0) {
     return (
-      <div className="w-full h-full flex flex-col items-center justify-center p-8 bg-slate-900/40">
+      <div className="w-full h-full flex flex-col items-center justify-center p-8 bg-slate-50">
         <Bot className="w-16 h-16 text-slate-300 mb-4" />
-        <h2 className="text-xl font-bold text-slate-100">No hay preguntas disponibles</h2>
-        <button onClick={onRestart} className="mt-4 text-indigo-400 font-bold underline">Volver al Repositorio</button>
+        <h2 className="text-xl font-bold text-slate-800">No hay preguntas disponibles</h2>
+        <button onClick={onRestart} className="mt-4 text-indigo-600 font-bold underline">Volver al Repositorio</button>
       </div>
     );
   }
 
   if (currentIndex >= questions.length) {
     return (
-      <div className="w-full h-full flex items-center justify-center p-8 bg-slate-900/40">
+      <div className="w-full min-h-screen flex items-center justify-center p-8 bg-slate-50">
         <motion.div 
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="w-full max-w-2xl p-12 bg-slate-900/60 backdrop-blur rounded-[2.5rem] shadow-2xl border border-indigo-500/20 text-center relative overflow-hidden"
+          className="w-full max-w-2xl p-12 bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 text-center relative overflow-hidden"
         >
           <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-emerald-400 to-indigo-600" />
-          <div className="w-24 h-24 bg-emerald-600/30 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner">
+          <div className="w-24 h-24 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner">
             <Trophy className="w-12 h-12" />
           </div>
-          <h2 className="text-4xl font-black text-slate-100 mb-4 tracking-tight">¡Misión cumplida!</h2>
-          <p className="text-xl text-slate-400 mb-10 font-medium">
-            Has completado este ensayo con <span className="text-indigo-400 font-black">{score}</span> de {questions.length} correctas.
+          <h2 className="text-4xl font-black text-slate-800 mb-4 tracking-tight">¡Misión cumplida!</h2>
+          <p className="text-xl text-slate-500 mb-10 font-medium">
+            Has completado este ensayo con <span className="text-indigo-600 font-black">{score}</span> de {questions.length} correctas.
           </p>
           
-          <div className="bg-slate-900/40 rounded-3xl p-6 mb-10 border border-indigo-500/20">
+          <div className="bg-slate-50 rounded-3xl p-6 mb-10 border border-slate-100">
              <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 bg-slate-900/60 backdrop-blur rounded-2xl shadow-lg text-center">
+                <div className="p-4 bg-white rounded-2xl shadow-sm text-center">
                    <div className="text-xs font-black text-slate-400 uppercase mb-1 tracking-widest">Efectividad</div>
-                   <div className="text-3xl font-black text-slate-100">{Math.round((score / questions.length) * 100)}%</div>
+                   <div className="text-3xl font-black text-slate-800">{Math.round((score / questions.length) * 100)}%</div>
                 </div>
-                <div className="p-4 bg-slate-900/60 backdrop-blur rounded-2xl shadow-lg text-center">
+                <div className="p-4 bg-white rounded-2xl shadow-sm text-center">
                    <div className="text-xs font-black text-slate-400 uppercase mb-1 tracking-widest">Preguntas</div>
-                   <div className="text-3xl font-black text-slate-100">{questions.length}</div>
+                   <div className="text-3xl font-black text-slate-800">{questions.length}</div>
                 </div>
              </div>
           </div>
@@ -137,9 +137,9 @@ export function QuizRunner({ questions, quizId, quizTitle, user, onRestart }: Qu
   }
 
   return (
-    <div className="w-full h-full flex flex-col lg:flex-row bg-[#f8fafc] overflow-hidden">
+    <div className="w-full h-full flex flex-col lg:flex-row bg-[#f8fafc] overflow-hidden min-h-screen">
       {/* Questions Area */}
-      <div className="w-full lg:w-[75%] h-full overflow-y-auto px-6 md:px-12 py-12 custom-scrollbar relative border-r border-indigo-500/20">
+      <div className="w-full lg:w-[75%] h-full overflow-y-auto px-6 md:px-12 py-12 custom-scrollbar relative border-r border-slate-200">
         <div className="w-full space-y-10 pb-20">
           <motion.div 
             key={currentIndex}
@@ -148,189 +148,188 @@ export function QuizRunner({ questions, quizId, quizTitle, user, onRestart }: Qu
             className="w-full"
           >
             <div className="flex items-center justify-between mb-8">
-              <div className="flex items-center space-x-4">
-                <span className="text-sm font-black text-indigo-400 bg-indigo-500/20 px-5 py-2 rounded-xl border border-indigo-500/30 tracking-tight">
-                  PREGUNTA {question.id || currentIndex + 1}
-                </span>
-                <div className="hidden sm:flex space-x-1.5 ">
-                  {questions.slice(0, 10).map((_, i) => (
-                    <div 
-                      key={i} 
-                      className={cn(
-                        "w-2 h-2 rounded-full transition-all duration-500",
-                        i === currentIndex ? "w-8 bg-indigo-600" : i < currentIndex ? "bg-emerald-400" : "bg-slate-200"
-                      )}
-                    />
-                  ))}
-                  {questions.length > 10 && <span className="text-[10px] text-slate-300 font-bold">...</span>}
-                </div>
-              </div>
-              <div className="flex items-center space-x-3 bg-slate-900/60 backdrop-blur px-5 py-2.5 rounded-2xl shadow-lg border border-indigo-500/20">
-                <Sparkles className="w-4 h-4 text-amber-400" />
-                <span className="text-xs font-black text-slate-400 uppercase tracking-widest leading-none">
-                   {score}/{questions.length} Correctas
-                </span>
-                <div className="w-px h-3 bg-slate-200" />
-                <span className="text-xs font-black text-indigo-400">{Math.round((score/questions.length)*100)}%</span>
-              </div>
-            </div>
-
-            {/* Question Area */}
-            <div className="mb-12">
-              {(question.imageBase64 || (question as any).imageUrl) ? (
-                <div className="relative group overflow-visible">
-                  <div className="absolute -inset-8 bg-indigo-500/200/5 rounded-[4rem] blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-                  <img 
-                    src={question.imageBase64 || (question as any).imageUrl} 
-                    alt="Pregunta" 
-                    className="relative w-full object-contain max-h-[75vh] rounded-[2.5rem] shadow-2xl shadow-slate-200/40 block mx-auto py-8 px-6 bg-slate-900/60 backdrop-blur border border-indigo-500/30"
-                  />
-                </div>
-              ) : (
-                <div className="bg-slate-900/60 backdrop-blur p-12 rounded-[2.5rem] shadow-2xl shadow-slate-200/40 border border-indigo-500/30 prose prose-slate prose-xl max-w-none font-black text-slate-100 leading-relaxed">
-                  <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
-                    {question.text.trim().startsWith('{') ? "Error al extraer el texto de la imagen." : question.text}
-                  </ReactMarkdown>
-                </div>
-              )}
-            </div>
-
-            {/* Options */}
-            <div className="grid grid-cols-1 gap-4">
-              {question.options.map((option, idx) => {
-                const isSelected = selectedOption === idx;
-                const isCorrectOption = idx === question.correctOptionIndex;
-                
-                return (
-                  <motion.button
-                    key={idx}
-                    whileHover={!isAnswered ? { scale: 1.01, x: 5 } : {}}
-                    whileTap={!isAnswered ? { scale: 0.99 } : {}}
-                    onClick={() => handleSelect(idx)}
-                    disabled={isAnswered}
-                    className={cn(
-                      "group w-full text-left p-6 rounded-[1.5rem] border-2 transition-all flex items-start space-x-5",
-                      !isAnswered 
-                        ? (isSelected ? "border-indigo-600 bg-indigo-500/20/50" : "border-indigo-500/20 hover:border-indigo-200 hover:bg-slate-900/40")
-                        : (isCorrectOption ? "border-emerald-500 bg-emerald-500/10 shadow-xl shadow-emerald-100/50 z-10" : 
-                          (isSelected ? "border-rose-400 bg-rose-500/10 opacity-100" : "border-indigo-500/20 opacity-40 hover:opacity-100"))
-                    )}
-                  >
-                    <div className={cn(
-                      "w-10 h-10 rounded-2xl border-2 flex items-center justify-center flex-shrink-0 transition-all duration-300 font-black",
-                      isAnswered && isCorrectOption ? "bg-emerald-500/100 border-emerald-500 text-white scale-110" :
-                      isAnswered && isSelected && !isCorrectOption ? "bg-rose-500/100 border-rose-500 text-white" :
-                      isSelected ? "bg-indigo-600 border-indigo-600 text-white" : "bg-slate-900/40 border-slate-700 text-slate-400 group-hover:border-indigo-300 group-hover:text-indigo-400 group-hover:bg-slate-900/60 backdrop-blur"
-                    )}>
-                      {isAnswered && isCorrectOption ? (
-                        <CheckCircle className="w-6 h-6" />
-                      ) : isAnswered && isSelected && !isCorrectOption ? (
-                        <ArrowLeft className="w-6 h-6 rotate-[-45deg]" /> 
-                      ) : (
-                        <span className="text-base">{String.fromCharCode(65 + idx)}</span>
-                      )}
-                    </div>
-                    <div className={cn(
-                      "flex-1 prose prose-slate max-w-none pt-1",
-                      isSelected || (isAnswered && isCorrectOption) ? "font-black text-slate-100" : "font-semibold text-slate-300"
-                    )}>
-                      <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
-                        {option}
-                      </ReactMarkdown>
-                    </div>
-                  </motion.button>
-                );
-              })}
-            </div>
-
-            <AnimatePresence>
-              {isAnswered && (
-                <motion.div 
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mt-12"
-                >
-                   {isCorrect && (
-                      <div className="bg-emerald-500/10 p-7 rounded-[2rem] border border-emerald-500/30 mb-8 flex items-start space-x-5 shadow-lg">
-                        <div className="p-3 bg-emerald-500/100/10 text-emerald-600 rounded-2xl">
-                           <Trophy className="w-6 h-6" />
-                        </div>
-                        <div>
-                           <h4 className="font-black text-emerald-300 text-lg leading-none mb-1.5">¡Excelente! Respuesta Correcta</h4>
-                           <p className="text-emerald-200 font-bold opacity-80">Vas progresando muy bien. Los puntos clave de esta pregunta se han reforzado.</p>
-                        </div>
-                      </div>
-                   )}
-                   
-                  <div className="flex flex-col sm:flex-row gap-5 items-center justify-between pt-10 border-t border-indigo-500/20">
-                    <button
-                      onClick={handlePrevious}
-                      disabled={currentIndex === 0}
-                      className="flex items-center space-x-3 px-8 py-4 text-slate-400 hover:text-indigo-400 font-black tracking-tight transition-all disabled:opacity-0"
-                    >
-                      <ArrowLeft className="w-6 h-6" />
-                      <span>Volver Atrás</span>
-                    </button>
-                    
-                    <button
-                      onClick={handleNext}
-                      className="btn-premium px-14 py-5 shadow-2xl shadow-indigo-100 group"
-                    >
-                      <span className="font-black text-xl">{currentIndex < questions.length - 1 ? "Siguiente Pregunta" : "Finalizar y Ver Resultados"}</span>
-                      <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
-                    </button>
+               <div className="flex items-center space-x-4">
+                  <div className="px-5 py-2 bg-white rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-2">
+                     <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Pregunta</span>
+                     <span className="text-lg font-black text-indigo-600">{currentIndex + 1}</span>
+                     <span className="text-slate-300 font-bold">/</span>
+                     <span className="text-slate-400 font-bold">{questions.length}</span>
                   </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+               </div>
+               
+               <div className="hidden md:flex items-center space-x-2">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-100 px-3 py-1 rounded-full border border-slate-200 flex items-center">
+                     <ShieldCheck className="w-3 h-3 mr-1.5 text-indigo-500" />
+                     Digitalizado por IA Profesora Naomi
+                  </span>
+               </div>
+            </div>
+
+            <div className="space-y-8">
+               {/* Image Preview if exists */}
+               {question.imageBase64 && (
+                 <div className="w-full bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden p-2">
+                    <img 
+                      src={question.imageBase64} 
+                      alt="Pregunta original" 
+                      className="w-full h-auto rounded-2xl"
+                    />
+                 </div>
+               )}
+
+               {/* Question Text */}
+               <div className="prose prose-slate max-w-none prose-p:text-slate-700 prose-p:text-xl prose-p:font-bold prose-p:leading-relaxed prose-strong:text-indigo-600">
+                 <ReactMarkdown 
+                    remarkPlugins={[remarkMath]} 
+                    rehypePlugins={[rehypeKatex]}
+                  >
+                   {question.text}
+                 </ReactMarkdown>
+               </div>
+
+               {/* Options */}
+               <div className="grid grid-cols-1 gap-4">
+                 {question.options.map((option, idx) => {
+                   let stateClasses = "border-slate-200 hover:border-indigo-400 hover:bg-white text-slate-700 hover:shadow-md";
+                   
+                   if (isAnswered) {
+                     if (idx === question.correctOptionIndex) {
+                       stateClasses = "border-emerald-500 bg-emerald-50 text-emerald-800 shadow-emerald-100 shadow-lg scale-[1.02] z-10";
+                     } else if (idx === selectedOption) {
+                       stateClasses = "border-rose-500 bg-rose-50 text-rose-800 opacity-90";
+                     } else {
+                       stateClasses = "border-slate-100 opacity-50 grayscale-[0.5]";
+                     }
+                   }
+
+                   return (
+                     <button
+                       key={idx}
+                       onClick={() => handleSelect(idx)}
+                       disabled={isAnswered}
+                       className={cn(
+                         "flex items-start w-full p-5 rounded-2xl border-2 transition-all duration-300 group text-left relative",
+                         stateClasses
+                       )}
+                     >
+                       <div className={cn(
+                         "w-10 h-10 rounded-xl flex items-center justify-center font-black text-lg mr-4 shrink-0 transition-colors",
+                         isAnswered && idx === question.correctOptionIndex ? "bg-emerald-500 text-white" : 
+                         isAnswered && idx === selectedOption ? "bg-rose-500 text-white" :
+                         "bg-slate-100 text-slate-400 group-hover:bg-indigo-100 group-hover:text-indigo-600"
+                       )}>
+                         {String.fromCharCode(65 + idx)}
+                       </div>
+                       
+                       <div className="pt-1.5 flex-1 font-bold">
+                         <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
+                           {option}
+                         </ReactMarkdown>
+                       </div>
+
+                       {isAnswered && idx === question.correctOptionIndex && (
+                         <div className="ml-2 flex items-center text-emerald-600">
+                            <CheckCircle className="w-6 h-6 fill-emerald-100" />
+                         </div>
+                       )}
+                       {isAnswered && idx === selectedOption && idx !== question.correctOptionIndex && (
+                         <div className="ml-2 flex items-center text-rose-600">
+                            <XCircle className="w-6 h-6 fill-rose-100" />
+                         </div>
+                       )}
+                     </button>
+                   );
+                 })}
+               </div>
+            </div>
           </motion.div>
+        </div>
+
+        {/* Footer Navigation */}
+        <div className="fixed bottom-0 left-0 w-full lg:w-[75%] bg-white/80 backdrop-blur-md border-t border-slate-200 p-4 md:p-6 z-30">
+          <div className="max-w-4xl mx-auto flex items-center justify-between">
+            <button
+              onClick={handlePrevious}
+              className="p-4 rounded-2xl text-slate-500 hover:text-indigo-600 hover:bg-slate-50 transition-all active:scale-90 border border-transparent hover:border-slate-200"
+              disabled={currentIndex === 0}
+            >
+              <ArrowLeft className="w-6 h-6 " />
+            </button>
+            
+            <div className="flex-1 px-8">
+               <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-200 shadow-inner">
+                  <motion.div 
+                     initial={{ width: 0 }}
+                     animate={{ width: `${((currentIndex + 1) / questions.length) * 100}%` }}
+                     className="h-full bg-gradient-to-r from-indigo-500 to-indigo-700 rounded-full shadow-lg shadow-indigo-100"
+                  />
+               </div>
+            </div>
+
+            {isAnswered ? (
+              <button
+                onClick={handleNext}
+                className="btn-premium py-4 px-8 text-lg animate-pulse hover:animate-none group"
+              >
+                <span>Siguiente</span>
+                <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+              </button>
+            ) : (
+                <div className="flex items-center text-xs font-black text-slate-300 uppercase tracking-widest pr-4">
+                    Selecciona una respuesta
+                </div>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Tutor Sidebar */}
-      <div className="w-full lg:w-[25%] h-full bg-slate-900/60 backdrop-blur flex flex-col z-10 shadow-2xl relative overflow-hidden">
-        <AnimatePresence mode="wait">
-          {showTutor && selectedOption !== null ? (
-            <motion.div 
-              key="tutor"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              className="h-full"
-            >
-              <AITutor question={question} userWrongAnswerIndex={selectedOption} />
-            </motion.div>
+      {/* Side Panel (Tutor) */}
+      <div className="w-full lg:w-[25%] h-[400px] lg:h-full bg-white border-l border-slate-200 flex flex-col shadow-2xl relative z-40">
+        <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-100">
+               <Bot className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-black text-slate-800 uppercase tracking-tight">Tutor IA Stephanie</h3>
+              <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">En línea</p>
+            </div>
+          </div>
+          <button 
+            onClick={() => setShowTutor(!showTutor)}
+            className="p-2 text-slate-400 hover:text-indigo-600 transition-colors"
+          >
+            <Info className="w-5 h-5" />
+          </button>
+        </div>
+        
+        <div className="flex-1 overflow-hidden">
+          {showTutor ? (
+            <AITutor 
+               question={question} 
+               userWrongAnswerIndex={selectedOption ?? -1} 
+            />
           ) : (
-            <motion.div 
-              key="tutor-placeholder"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="h-full bg-slate-900/40/30 p-12 flex flex-col items-center justify-center text-center space-y-10"
-            >
-              <div className="relative">
-                 <div className="w-36 h-36 bg-slate-900/60 backdrop-blur shadow-3xl shadow-indigo-100 rounded-[3rem] flex items-center justify-center text-indigo-400 animate-float border border-indigo-500/30">
-                    <Bot className="w-20 h-20" />
-                 </div>
-                 <div className="absolute -bottom-3 -right-3 w-12 h-12 bg-emerald-500/100 rounded-full border-4 border-indigo-500/30 flex items-center justify-center text-white shadow-lg">
-                    <Sparkles className="w-6 h-6" />
-                 </div>
+            <div className="h-full flex flex-col items-center justify-center p-8 text-center bg-white">
+              <div className="w-20 h-20 bg-indigo-50 rounded-3xl flex items-center justify-center mb-6 border border-indigo-100">
+                <Sparkles className="w-10 h-10 text-indigo-300 animate-pulse" />
               </div>
-              <div className="space-y-4">
-                <h3 className="text-2xl font-black text-slate-100 tracking-tight leading-tight">Tutor IA Socrático</h3>
-                <p className="text-slate-400 font-bold leading-relaxed px-4">
-                  Analizaré tu razonamiento y te guiaré con pistas precisas para que tú mismo descubras la respuesta correcta.
-                </p>
-              </div>
-              <div className="pt-10 border-t border-slate-700 w-full">
-                 <div className="flex items-center space-x-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] justify-center">
-                    <ShieldCheck className="w-3.5 h-3.5" />
-                    <span>Gemini Pro Vision Enabled</span>
-                 </div>
-              </div>
-            </motion.div>
+              <h4 className="text-lg font-black text-slate-800 mb-2">¿Necesitas ayuda?</h4>
+              <p className="text-sm font-medium text-slate-400 leading-relaxed mb-6">
+                El Tutor IA Stephanie puede explicarte este ejercicio paso a paso después de que respondas.
+              </p>
+              {isAnswered && (
+                  <button 
+                    onClick={() => setShowTutor(true)}
+                    className="flex items-center space-x-2 text-indigo-600 font-bold hover:underline"
+                  >
+                    <span>Ver explicación</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+              )}
+            </div>
           )}
-        </AnimatePresence>
+        </div>
       </div>
     </div>
   );

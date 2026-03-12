@@ -10,10 +10,8 @@
 
 @layer base {
   body {
-    @apply antialiased text-slate-900;
+    @apply antialiased bg-white text-slate-900;
     font-family: var(--font-sans);
-    background: radial-gradient(circle at top right, #f0f9ff, #ffffff);
-    background-attachment: fixed;
     min-height: 100vh;
   }
 
@@ -26,31 +24,18 @@
 @layer components {
   .btn-premium {
     @apply px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl transition-all 
-           active:scale-95 shadow-lg shadow-indigo-200 hover:shadow-indigo-300 disabled:bg-slate-300 
-           disabled:shadow-none flex items-center justify-center space-x-2;
+           active:scale-95 shadow-lg shadow-indigo-100 hover:shadow-indigo-200 disabled:bg-slate-200 
+           disabled:text-slate-400 disabled:shadow-none flex items-center justify-center space-x-2;
   }
 
   .card-premium {
     @apply bg-white border border-slate-200 rounded-2xl p-6 hover:border-indigo-400 
-           hover:shadow-xl hover:shadow-slate-200/50 transition-all cursor-pointer;
+           hover:shadow-xl hover:shadow-slate-100 transition-all cursor-pointer;
   }
 
   .glass-panel {
-    @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-xl;
+    @apply bg-white border border-slate-200 shadow-xl rounded-3xl;
   }
-}
-
-/* Custom scrollbar */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  @apply bg-slate-400/20 rounded-full hover:bg-indigo-400/40 transition-colors;
 }
 
 ::-webkit-scrollbar {
@@ -58,21 +43,9 @@
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-slate-100;
+  @apply bg-slate-50;
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-slate-300 rounded-full hover:bg-slate-400 transition-colors;
+  @apply bg-slate-200 rounded-full hover:bg-slate-300 transition-colors;
 }
-
-/* Keyframes for animations */
-@keyframes float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-  100% { transform: translateY(0px); }
-}
-
-.animate-float {
-  animation: float 3s ease-in-out infinite;
-}
-
