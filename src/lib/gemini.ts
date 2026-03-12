@@ -70,11 +70,11 @@ export async function generateQuizFromImages(
       TU MISIÓN: Extraer cada pregunta con su número original, texto, opciones y ubicación exacta.
       
       REGLAS DE ORO:
-      1. RESOLVER: Debes resolver matemáticamente cada ejercicio para encontrar la respuesta correcta.
-      2. MARCAS DEL USUARIO: Si en la imagen hay un círculo, una cruz o un visto sobre una alternativa, esa MANDA y es la "correcta".
+      1. RESOLVER Y VERIFICAR: Debes resolver paso a paso y matemáticamente cada ejercicio para encontrar la verdadera respuesta correcta.
+      2. IGNORAR MARCAS MANUALES: NO te fíes de círculos, cruces o marcas dibujadas por el alumno sobre las opciones, ya que el alumno pudo haberse equivocado. Tú eres la experta, calcula la respuesta real. Si te envían una hoja de "Claves/Respuestas", SÍ utilízala como verdad.
       3. IDENTIFICACIÓN: Usa el número real de la pregunta como "id".
       4. ÁREA DE CAPTURA (box): Incluye enunciado y TODAS las opciones.
-      5. LATEX: Usa $ para TODA expresión matemática, fórmula, símbolo o número solo (Ej: $x$, $\frac{1}{2}$, $5$). NO uses doble barra \\\\ a menos que sea estrictamente necesario para el JSON.
+      5. LATEX: Usa $ para TODA expresión matemática, fórmula, símbolo o número solo (Ej: $x$, $\frac{1}{2}$, $5$). NO uses doble barra \\ a menos que sea estrictamente necesario para el JSON.
       6. JSON PURO: Responde solo con el objeto JSON válido.`
     },
     {

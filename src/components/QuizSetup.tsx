@@ -171,18 +171,18 @@ export function QuizSetup({ onQuizGenerated, user }: QuizSetupProps) {
   };
 
   return (
-    <div className="w-full max-w-3xl mx-auto p-10 bg-white rounded-[2.5rem] shadow-xl border border-slate-100">
+    <div className="w-full max-w-3xl mx-auto p-10 bg-slate-900/60 backdrop-blur rounded-[2.5rem] shadow-xl border border-indigo-500/20">
       <div className="text-center mb-10">
-        <h2 className="text-3xl font-black text-slate-800 mb-3 tracking-tight">Portal de Creación Docente</h2>
-        <p className="text-slate-500 font-medium">Sube tus guías en PDF o imágenes separadas para crear tu ensayo.</p>
+        <h2 className="text-3xl font-black text-slate-100 mb-3 tracking-tight">Portal de Creación Docente</h2>
+        <p className="text-slate-400 font-medium">Sube tus guías en PDF o imágenes separadas para crear tu ensayo.</p>
       </div>
 
-      <div className="flex bg-slate-100 p-1.5 rounded-2xl mb-10">
+      <div className="flex bg-slate-800/50 p-1.5 rounded-2xl mb-10">
         <button
           onClick={() => setMode("pdf")}
           className={cn(
             "flex-1 flex items-center justify-center space-x-2 py-3 rounded-xl font-black text-sm uppercase tracking-widest transition-all",
-            mode === "pdf" ? "bg-white text-indigo-600 shadow-sm" : "text-slate-500 hover:text-slate-700"
+            mode === "pdf" ? "bg-slate-900/60 backdrop-blur text-indigo-400 shadow-lg" : "text-slate-400 hover:text-slate-200"
           )}
         >
           <FileUp className="w-4 h-4" />
@@ -192,7 +192,7 @@ export function QuizSetup({ onQuizGenerated, user }: QuizSetupProps) {
           onClick={() => setMode("images")}
           className={cn(
             "flex-1 flex items-center justify-center space-x-2 py-3 rounded-xl font-black text-sm uppercase tracking-widest transition-all",
-            mode === "images" ? "bg-white text-indigo-600 shadow-sm" : "text-slate-500 hover:text-slate-700"
+            mode === "images" ? "bg-slate-900/60 backdrop-blur text-indigo-400 shadow-lg" : "text-slate-400 hover:text-slate-200"
           )}
         >
           <ImageIcon className="w-4 h-4" />
@@ -212,7 +212,7 @@ export function QuizSetup({ onQuizGenerated, user }: QuizSetupProps) {
             value={quizName}
             onChange={(e) => setQuizName(e.target.value)}
             placeholder="Ej: Ensayo M1 Matemáticas"
-            className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-50 rounded-2xl focus:bg-white focus:border-indigo-500 transition-all outline-none font-bold text-slate-700"
+            className="w-full px-6 py-4 bg-slate-900/40 border-2 border-slate-50 rounded-2xl focus:bg-slate-900/60 backdrop-blur focus:border-indigo-500 transition-all outline-none font-bold text-slate-200"
             disabled={isGenerating}
           />
         </div>
@@ -235,19 +235,19 @@ export function QuizSetup({ onQuizGenerated, user }: QuizSetupProps) {
                 <label
                   htmlFor="questions-upload"
                   className={`flex items-center justify-center w-full p-10 border-2 border-dashed rounded-[2rem] cursor-pointer transition-all ${
-                    questionsFile ? "border-emerald-500 bg-emerald-50/50" : "border-slate-200 hover:border-indigo-400 hover:bg-slate-50"
+                    questionsFile ? "border-emerald-500 bg-emerald-500/10/50" : "border-slate-700 hover:border-indigo-400 hover:bg-slate-900/40"
                   }`}
                 >
                   <div className="flex flex-col items-center space-y-3 text-center">
                     {questionsFile ? (
                       <>
                         <CheckCircle className="w-10 h-10 text-emerald-500" />
-                        <span className="text-emerald-700 font-bold text-lg">{questionsFile.name}</span>
+                        <span className="text-emerald-200 font-bold text-lg">{questionsFile.name}</span>
                       </>
                     ) : (
                       <>
                         <FileUp className="w-10 h-10 text-slate-400" />
-                        <span className="text-slate-600 font-bold">Haz clic para subir el PDF</span>
+                        <span className="text-slate-300 font-bold">Haz clic para subir el PDF</span>
                       </>
                     )}
                   </div>
@@ -271,7 +271,7 @@ export function QuizSetup({ onQuizGenerated, user }: QuizSetupProps) {
                 <label
                   htmlFor="solutions-upload"
                   className={`flex items-center justify-center w-full p-6 border-2 border-dashed rounded-2xl cursor-pointer transition-all ${
-                    solutionsFile ? "border-indigo-500 bg-indigo-50/30" : "border-slate-200 hover:bg-slate-50"
+                    solutionsFile ? "border-indigo-500 bg-indigo-500/20/30" : "border-slate-700 hover:bg-slate-900/40"
                   }`}
                 >
                   <div className="flex flex-col items-center space-y-2 text-center">
@@ -280,7 +280,7 @@ export function QuizSetup({ onQuizGenerated, user }: QuizSetupProps) {
                     ) : (
                       <>
                         <FileText className="w-6 h-6 text-slate-300" />
-                        <span className="text-slate-500 font-bold text-sm">Cargar pauta de respuestas</span>
+                        <span className="text-slate-400 font-bold text-sm">Cargar pauta de respuestas</span>
                       </>
                     )}
                   </div>
@@ -301,7 +301,7 @@ export function QuizSetup({ onQuizGenerated, user }: QuizSetupProps) {
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.8 }}
-                    className="relative aspect-square bg-slate-100 rounded-2xl overflow-hidden group border border-slate-200"
+                    className="relative aspect-square bg-slate-800/50 rounded-2xl overflow-hidden group border border-slate-700"
                   >
                     <img 
                       src={URL.createObjectURL(file)} 
@@ -310,7 +310,7 @@ export function QuizSetup({ onQuizGenerated, user }: QuizSetupProps) {
                     />
                     <button
                       onClick={() => removeImage(idx)}
-                      className="absolute top-2 right-2 p-1 bg-white/90 text-red-500 rounded-full shadow-sm hover:bg-white"
+                      className="absolute top-2 right-2 p-1 bg-slate-900/60 backdrop-blur/90 text-red-500 rounded-full shadow-lg hover:bg-slate-900/60 backdrop-blur"
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -322,7 +322,7 @@ export function QuizSetup({ onQuizGenerated, user }: QuizSetupProps) {
               </AnimatePresence>
               
               <label 
-                className="aspect-square border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center text-slate-400 hover:border-indigo-400 hover:text-indigo-600 cursor-pointer bg-slate-50 transition-all hover:bg-slate-100"
+                className="aspect-square border-2 border-dashed border-slate-700 rounded-2xl flex flex-col items-center justify-center text-slate-400 hover:border-indigo-400 hover:text-indigo-400 cursor-pointer bg-slate-900/40 transition-all hover:bg-slate-800/50"
                 htmlFor="multi-image-upload"
               >
                 <ImageIcon className="w-8 h-8 mb-2" />
@@ -344,12 +344,12 @@ export function QuizSetup({ onQuizGenerated, user }: QuizSetupProps) {
           <div className="space-y-4 pt-4">
              <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                   <Loader2 className="w-5 h-5 text-indigo-600 animate-spin" />
-                   <span className="text-sm font-black text-slate-700">{statusText}</span>
+                   <Loader2 className="w-5 h-5 text-indigo-400 animate-spin" />
+                   <span className="text-sm font-black text-slate-200">{statusText}</span>
                 </div>
-                <span className="text-sm font-black text-indigo-600">{progress}%</span>
+                <span className="text-sm font-black text-indigo-400">{progress}%</span>
              </div>
-             <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden p-0.5 border border-slate-200/50">
+             <div className="w-full h-3 bg-slate-800/50 rounded-full overflow-hidden p-0.5 border border-slate-700/50">
                 <motion.div 
                    initial={{ width: 0 }}
                    animate={{ width: `${progress}%` }}
@@ -360,7 +360,7 @@ export function QuizSetup({ onQuizGenerated, user }: QuizSetupProps) {
         )}
 
         {error && (
-          <div className="p-5 bg-rose-50 border border-rose-100 text-rose-600 rounded-2xl text-sm font-bold">
+          <div className="p-5 bg-rose-500/10 border border-rose-500/30 text-rose-600 rounded-2xl text-sm font-bold">
              {error}
           </div>
         )}
