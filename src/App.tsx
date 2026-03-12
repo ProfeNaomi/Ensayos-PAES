@@ -199,10 +199,9 @@ export default function App() {
               <BookOpen className="w-6 h-6" />
             </div>
             <div>
-              <h1 className="text-xl font-black text-slate-800 tracking-tight leading-none">
-                PAES<span className="text-indigo-600">TUTOR</span>
+              <h1 className="text-lg font-black text-slate-800 tracking-tight leading-none">
+                Plataforma de ejercitación<br/><span className="text-indigo-600">Profe Naomi</span>
               </h1>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Platform IA v2.0</p>
             </div>
           </div>
           
@@ -348,129 +347,180 @@ export default function App() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="space-y-12"
+              className="flex flex-col lg:flex-row gap-8"
             >
-              {/* Hero Section */}
-              <div className="relative overflow-hidden bg-indigo-600 rounded-[2.5rem] p-8 md:p-16 text-white shadow-2xl shadow-indigo-200">
-                <div className="absolute top-0 right-0 -translate-y-1/4 translate-x-1/4 w-96 h-96 bg-indigo-500 rounded-full blur-3xl opacity-50" />
-                <div className="absolute bottom-0 left-0 translate-y-1/4 -translate-x-1/4 w-64 h-64 bg-violet-500 rounded-full blur-3xl opacity-50" />
-                
-                <div className="relative z-10 max-w-2xl">
-                  <motion.div 
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="inline-flex items-center space-x-2 bg-indigo-500/30 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-bold mb-6 border border-white/10"
-                  >
-                    <Sparkles className="w-4 h-4 text-yellow-300" />
-                    <span>Plataforma Oficial Profe Naomi</span>
-                  </motion.div>
-                  <h2 className="text-4xl md:text-6xl font-black mb-6 leading-[1.1]">
-                    {user ? `¡Hola de nuevo, ${userProfile?.displayName?.split(' ')[0] || 'estudiante'}!` : 'Tu formación PAES comienza aquí.'}
-                  </h2>
-                  <p className="text-lg md:text-xl text-indigo-100 mb-8 font-medium leading-relaxed">
-                    Practica con ensayos reales y obtén retroalimentación instantánea de nuestra IA. 
-                    Aprende de cada error y mejora tu puntaje paso a paso.
-                  </p>
-                  
-                  {role === 'teacher' || user?.email?.toLowerCase().includes('naomi') ? (
-                    <button
-                      onClick={() => setIsCreating(true)}
-                      className="group bg-white text-indigo-600 hover:bg-slate-50 px-8 py-4 rounded-2xl font-black text-lg transition-all active:scale-95 shadow-xl flex items-center space-x-3"
-                    >
-                      <Plus className="w-6 h-6" />
-                      <span>Subir Material Docente</span>
-                    </button>
-                  ) : !user && (
-                    <button
-                      onClick={() => setIsLoginOpen(true)}
-                      className="group bg-indigo-500 text-white hover:bg-indigo-400 px-8 py-4 rounded-2xl font-black text-lg transition-all active:scale-95 shadow-xl flex items-center space-x-3 border border-indigo-400"
-                    >
-                      <GraduationCap className="w-6 h-6" />
-                      <span>Crea tu perfil de alumno</span>
-                    </button>
+              {/* Columna Izquierda - Estadísticas Globales */}
+              <div className="hidden lg:flex flex-col w-64 shrink-0 space-y-6">
+                <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+                  <h4 className="font-black text-slate-800 mb-4 flex items-center"><BarChart3 className="w-5 h-5 mr-2 text-indigo-500" /> Rendimiento Global</h4>
+                  {user ? (
+                    <div>
+                      <div className="text-3xl font-black text-indigo-600 mb-1">
+                        {studentResults.reduce((sum, r) => sum + r.score, 0)}/{studentResults.reduce((sum, r) => sum + r.totalQuestions, 0)}
+                      </div>
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Respuestas Correctas</p>
+                      <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-indigo-500 rounded-full" 
+                          style={{width: `${Math.round((studentResults.reduce((sum, r) => sum + r.score, 0) / Math.max(1, studentResults.reduce((sum, r) => sum + r.totalQuestions, 0))) * 100)}%`}}
+                        ></div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-4">
+                      <p className="text-sm text-slate-500 mb-4 font-medium">Inicia sesión para ver tu progreso global</p>
+                      <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden mb-2">
+                        <div className="h-full bg-slate-200 rounded-full w-1/2"></div>
+                      </div>
+                    </div>
                   )}
                 </div>
               </div>
 
-              {/* Quiz List */}
-              <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-2xl font-black text-slate-800 flex items-center space-x-3">
-                    <BookOpen className="w-6 h-6 text-indigo-600" />
-                    <span>Repositorio de Ensayos</span>
-                  </h3>
-                  <div className="text-sm font-bold text-slate-400 bg-slate-100 px-4 py-1.5 rounded-full border border-slate-200">
-                    {quizzes.length} {quizzes.length === 1 ? 'Ensayo' : 'Ensayos'} disponibles
-                  </div>
-                </div>
-
-                {quizzes.length === 0 ? (
-                  <div className="bg-white border-2 border-slate-200 border-dashed rounded-[2rem] p-16 text-center">
-                    <div className="w-24 h-24 bg-slate-100 text-slate-300 rounded-3xl flex items-center justify-center mx-auto mb-6 transform -rotate-6">
-                      <BookOpen className="w-12 h-12" />
-                    </div>
-                    <h4 className="text-xl font-bold text-slate-800 mb-2">Aún no hay material disponible</h4>
-                    <p className="text-slate-500 max-w-md mx-auto mb-8 font-medium">
-                      {role === 'teacher' 
-                        ? 'Empieza por subir un PDF con preguntas tipo PAES. Nuestra IA se encargará de extraerlas y crear el cuestionario.'
-                        : 'Tu profesora aún no ha publicado ensayos. ¡Vuelve pronto para empezar a practicar!'}
+              {/* Columna Central - Contenido Principal */}
+              <div className="flex-1 space-y-8">
+                {/* Hero Section Reducido */}
+                <div className="relative overflow-hidden bg-indigo-600 rounded-[2rem] p-8 text-white shadow-xl shadow-indigo-200">
+                  <div className="absolute top-0 right-0 -translate-y-1/4 translate-x-1/4 w-96 h-96 bg-indigo-500 rounded-full blur-3xl opacity-50" />
+                  <div className="absolute bottom-0 left-0 translate-y-1/4 -translate-x-1/4 w-64 h-64 bg-violet-500 rounded-full blur-3xl opacity-50" />
+                  
+                  <div className="relative z-10">
+                    <h2 className="text-3xl font-black mb-3 leading-[1.1]">
+                      {user ? `¡Hola, ${userProfile?.displayName?.split(' ')[0] || 'estudiante'}!` : 'Habilidades del currículum chileno'}
+                    </h2>
+                    <p className="text-sm text-indigo-100 mb-6 font-medium max-w-md">
+                      El currículum chileno te permite desarrollar 4 tipos de habilidades fundamentales.
                     </p>
-                    {role === 'teacher' && (
+                    
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6 max-w-xl">
+                      {[
+                        { id: 1, title: 'Argumentar y comunicar', icon: <BookOpen className="w-5 h-5 text-indigo-200 mb-1" /> },
+                        { id: 2, title: 'Resolver problemas', icon: <CheckCircle2 className="w-5 h-5 text-indigo-200 mb-1" /> },
+                        { id: 3, title: 'Modelar', icon: <BarChart3 className="w-5 h-5 text-indigo-200 mb-1" /> },
+                        { id: 4, title: 'Representar', icon: <Sparkles className="w-5 h-5 text-indigo-200 mb-1" /> },
+                      ].map((skill) => (
+                        <div key={skill.id} className="group relative bg-white/10 p-3 rounded-xl border border-white/20 hover:bg-white/20 transition-colors flex flex-col items-center justify-center cursor-help">
+                          {skill.icon}
+                          <span className="text-[11px] font-bold text-center leading-tight truncate w-full">{skill.title.split(' ')[0]}</span>
+                          <div className="absolute opacity-0 group-hover:opacity-100 transition-opacity bg-slate-900 text-white text-xs px-3 py-2 rounded -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap z-20 pointer-events-none shadow-xl">
+                            {skill.title}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    {role === 'teacher' || user?.email?.toLowerCase().includes('naomi') ? (
                       <button
                         onClick={() => setIsCreating(true)}
-                        className="btn-premium"
+                        className="group bg-white text-indigo-600 hover:bg-slate-50 px-6 py-3 rounded-xl font-bold text-sm transition-all active:scale-95 shadow-lg flex items-center space-x-2"
                       >
                         <Plus className="w-5 h-5" />
-                        <span>Publicar Primer Ensayo</span>
+                        <span>Subir Material Docente</span>
+                      </button>
+                    ) : !user && (
+                      <button
+                        onClick={() => setIsLoginOpen(true)}
+                        className="group bg-indigo-500 text-white hover:bg-indigo-400 px-6 py-3 rounded-xl font-bold text-sm transition-all active:scale-95 shadow-lg flex items-center space-x-2 border border-indigo-400"
+                      >
+                        <GraduationCap className="w-5 h-5" />
+                        <span>Crea tu perfil de alumno</span>
                       </button>
                     )}
                   </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-12">
-                    {quizzes.map((quiz, idx) => (
-                      <motion.div 
-                        key={quiz.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: idx * 0.1 }}
-                        onClick={() => setCurrentQuiz(quiz)}
-                        className="card-premium flex flex-col group overflow-hidden"
-                      >
-                        <div className="flex items-start justify-between mb-6">
-                          <div className="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-all duration-500 rotate-3 group-hover:rotate-0">
-                            <BookOpen className="w-7 h-7" />
-                          </div>
-                          {role === 'teacher' && (
-                            <button
-                              onClick={(e) => handleDelete(quiz.id, e)}
-                              className="p-3 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all opacity-0 group-hover:opacity-100"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          )}
-                        </div>
-                        
-                        <h3 className="text-xl font-black text-slate-800 mb-4 line-clamp-2 leading-tight group-hover:text-indigo-600 transition-colors">
-                          {quiz.title}
-                        </h3>
-                        
-                        <div className="mt-auto flex items-center justify-between border-t border-slate-100 pt-6">
-                          <div className="flex flex-col">
-                            <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Preguntas</span>
-                            <span className="text-lg font-black text-slate-800">{quiz.questions.length}</span>
-                          </div>
-                          <div className="flex flex-col items-end">
-                            <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Fecha</span>
-                            <div className="flex items-center space-x-1 text-slate-800 font-bold">
-                              <Calendar className="w-3 h-3 text-indigo-400" />
-                              <span>{new Date(quiz.createdAt).toLocaleDateString()}</span>
-                            </div>
-                          </div>
-                        </div>
-                      </motion.div>
-                    ))}
+                </div>
+
+                {/* Quiz List */}
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xl font-black text-slate-800 flex items-center space-x-2">
+                      <BookOpen className="w-5 h-5 text-indigo-600" />
+                      <span>Repositorio de Ensayos</span>
+                    </h3>
+                    <div className="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
+                      {quizzes.length} disponibles
+                    </div>
                   </div>
-                )}
+
+                  {quizzes.length === 0 ? (
+                    <div className="bg-white border-2 border-slate-200 border-dashed rounded-3xl p-10 text-center">
+                      <div className="w-16 h-16 bg-slate-50 text-slate-300 rounded-2xl flex items-center justify-center mx-auto mb-4 transform -rotate-6">
+                        <BookOpen className="w-8 h-8" />
+                      </div>
+                      <h4 className="text-lg font-bold text-slate-800 mb-2">Aún no hay material disponible</h4>
+                      <p className="text-sm text-slate-500 max-w-sm mx-auto mb-6">
+                        {role === 'teacher' 
+                          ? 'Empieza por subir material para que tus estudiantes puedan ejercitar.'
+                          : 'Aún no hay ensayos publicados.'}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-12">
+                      {quizzes.map((quiz, idx) => (
+                        <motion.div 
+                          key={quiz.id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: idx * 0.1 }}
+                          onClick={() => setCurrentQuiz(quiz)}
+                          className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md hover:border-indigo-100 group cursor-pointer transition-all"
+                        >
+                          <div className="flex items-start justify-between mb-4">
+                            <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                              <BookOpen className="w-5 h-5" />
+                            </div>
+                            {role === 'teacher' && (
+                              <button
+                                onClick={(e) => handleDelete(quiz.id, e)}
+                                className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            )}
+                          </div>
+                          
+                          <h3 className="text-base font-black text-slate-800 mb-3 line-clamp-2 leading-snug group-hover:text-indigo-600 transition-colors">
+                            {quiz.title}
+                          </h3>
+                          
+                          <div className="mt-auto flex items-center justify-between border-t border-slate-50 pt-3">
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-50 px-2 py-1 rounded-md">
+                              {quiz.questions.length} PREGUNTAS
+                            </span>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Columna Derecha - Últimos Ensayos */}
+              <div className="hidden lg:flex flex-col w-64 shrink-0 space-y-6">
+                <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+                  <h4 className="font-black text-slate-800 mb-4 flex items-center text-sm"><CheckCircle2 className="w-4 h-4 mr-2 text-green-500" /> Últimos Resultados</h4>
+                  {user ? (
+                    <div className="space-y-3">
+                      {studentResults.slice(0,4).map(res => (
+                        <div key={res.quizId + res.completedAt} className="flex flex-col bg-slate-50 p-3 rounded-xl">
+                          <p className="text-xs font-bold text-slate-800 line-clamp-1 mb-2" title={res.quizTitle}>{res.quizTitle}</p>
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] text-slate-500 font-medium">Hace poco</span>
+                            <span className="text-sm font-black text-indigo-600">
+                              {Math.round((res.score / res.totalQuestions) * 100)}%
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                      {studentResults.length === 0 && <p className="text-xs text-slate-500 text-center py-2">Realiza un ensayo para ver tu progreso aquí.</p>}
+                    </div>
+                  ) : (
+                    <div className="text-center py-4">
+                      <p className="text-xs text-slate-500 font-medium pb-2 border-b border-slate-100 mb-2">Aquí verás tus puntajes recientes.</p>
+                      <div className="bg-slate-50 h-12 rounded-xl border border-slate-100 mb-2"></div>
+                      <div className="bg-slate-50 h-12 rounded-xl border border-slate-100"></div>
+                    </div>
+                  )}
+                </div>
               </div>
             </motion.div>
           )}
