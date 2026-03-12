@@ -172,7 +172,7 @@ export async function chatWithTutor(
   REGLAS DE ESTILO:
   - USA LATEX: Envuelve TODA fórmula, símbolo matemático, variable o número entre símbolos de peso simples: $...$ (Ej: $x$, $y$, $\\frac{a}{b}$, $5$).
   - NUNCA uses doble barra invertida fuera de LaTeX.
-  - Habla como un chileno buena onda ("ya po", "mira", "fíjate bien", "no te preocupes", "vamos que se puede").
+  - Habla en español general de manera clara, cercana y motivadora. Evita usar modismos o jergas locales.
   - Sé breve y directo en cada mensaje para fomentar el diálogo.`;
 
   const messages = [

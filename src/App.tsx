@@ -157,32 +157,8 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-indigo-100 selection:text-indigo-900">
-      {/* Panel de Sesión y Debug (Solo visible si hay usuario) */}
+      {/* Panel de Sesión y Debug (Solo visible si hay usuario) - ELIMINADO */}
       <div className="fixed top-4 right-4 z-[60] flex flex-col items-end space-y-2 pointer-events-none">
-        {user && (
-          <motion.div 
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="bg-white/95 backdrop-blur shadow-2xl rounded-2xl p-4 border border-indigo-100 text-right pointer-events-auto"
-          >
-            <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-1">Sesión Activa</p>
-            <p className="text-sm font-black text-slate-800">{user.email}</p>
-            <div className="flex items-center justify-end space-x-2 mt-2">
-              <span className={cn(
-                "text-[10px] font-black px-2 py-1 rounded-lg uppercase",
-                role === 'teacher' || isActuallyTeacher ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
-              )}>
-                Rol: {isActuallyTeacher ? 'Profesora' : 'Estudiante'}
-              </span>
-              <button 
-                onClick={handleLogout}
-                className="text-[10px] font-black text-red-500 hover:bg-red-50 px-2 py-1 rounded-lg transition-colors border border-red-100"
-              >
-                CERRAR SESIÓN
-              </button>
-            </div>
-          </motion.div>
-        )}
       </div>
 
       <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-40">
@@ -394,16 +370,19 @@ export default function App() {
                     
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6 max-w-xl">
                       {[
-                        { id: 1, title: 'Argumentar y comunicar', icon: <BookOpen className="w-5 h-5 text-indigo-200 mb-1" /> },
-                        { id: 2, title: 'Resolver problemas', icon: <CheckCircle2 className="w-5 h-5 text-indigo-200 mb-1" /> },
-                        { id: 3, title: 'Modelar', icon: <BarChart3 className="w-5 h-5 text-indigo-200 mb-1" /> },
-                        { id: 4, title: 'Representar', icon: <Sparkles className="w-5 h-5 text-indigo-200 mb-1" /> },
+                        { id: 1, title: 'Argumentar y comunicar', desc: 'Describir, explicar, argumentar y evaluar procesos y resultados matemáticos.', icon: <BookOpen className="w-5 h-5 text-indigo-200 mb-1" /> },
+                        { id: 2, title: 'Resolver problemas', desc: 'Emplear estrategias para abordar diversas situaciones matemáticas y verificar resultados.', icon: <CheckCircle2 className="w-5 h-5 text-indigo-200 mb-1" /> },
+                        { id: 3, title: 'Modelar', desc: 'Aplicar modelos matemáticos y construir versiones abstractas de sistemas reales.', icon: <BarChart3 className="w-5 h-5 text-indigo-200 mb-1" /> },
+                        { id: 4, title: 'Representar', desc: 'Elegir, utilizar y transitar entre formas concretas, pictóricas y simbólicas.', icon: <Sparkles className="w-5 h-5 text-indigo-200 mb-1" /> },
                       ].map((skill) => (
                         <div key={skill.id} className="group relative bg-white/10 p-3 rounded-xl border border-white/20 hover:bg-white/20 transition-colors flex flex-col items-center justify-center cursor-help">
                           {skill.icon}
                           <span className="text-[11px] font-bold text-center leading-tight truncate w-full">{skill.title.split(' ')[0]}</span>
-                          <div className="absolute opacity-0 group-hover:opacity-100 transition-opacity bg-slate-900 text-white text-xs px-3 py-2 rounded -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap z-20 pointer-events-none shadow-xl">
-                            {skill.title}
+                          {/* Tooltip con información oficial del MINEDUC */}
+                          <div className="absolute opacity-0 pb-3 group-hover:opacity-100 transition-all bg-slate-900 border border-slate-700 text-white p-3 rounded-xl -top-28 left-1/2 -translate-x-1/2 w-48 shadow-2xl pointer-events-none z-50">
+                            <p className="font-bold text-xs text-indigo-300 mb-1">{skill.title}</p>
+                            <p className="text-[10px] text-slate-200 font-medium leading-tight">{skill.desc}</p>
+                            <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-slate-900 rotate-45 border-b border-r border-slate-700"></div>
                           </div>
                         </div>
                       ))}
