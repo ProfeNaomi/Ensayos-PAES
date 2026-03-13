@@ -176,7 +176,7 @@ export default function App() {
             </div>
             <div>
               <h1 className="text-lg font-black text-slate-800 tracking-tight leading-none">
-                Plataforma de ejercitación<br/><span className="text-indigo-600">Profe Naomi</span>
+                Plataforma de ejercitación v1.2<br/><span className="text-indigo-600">Profe Naomi</span>
               </h1>
             </div>
           </div>
