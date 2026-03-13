@@ -238,7 +238,7 @@ export function QuizSetup({ onQuizGenerated, user }: QuizSetupProps) {
                   >
                     <X className="w-4 h-4" />
                   </button>
-                  <div className="absolute bottom-0 left-0 w-full bg-slate-900/60 backdrop-blur-sm p-2 text-[10px] text-white font-bold truncate">
+                  <div className="absolute bottom-0 left-0 w-full bg-white/80 backdrop-blur-sm p-2 text-[10px] text-slate-800 font-bold truncate">
                     {file.name}
                   </div>
                 </motion.div>

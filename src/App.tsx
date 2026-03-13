@@ -176,7 +176,7 @@ export default function App() {
             </div>
             <div>
               <h1 className="text-lg font-black text-slate-800 tracking-tight leading-none">
-                Plataforma de ejercitación v1.2<br/><span className="text-indigo-600">Profe Naomi</span>
+                Plataforma de ejercitación v1.3<br/><span className="text-indigo-600">Profe Naomi</span>
               </h1>
             </div>
           </div>
@@ -250,8 +250,8 @@ export default function App() {
             >
               <div className="flex items-center justify-between mb-8">
                 <div>
-                  <h2 className="text-3xl font-black text-slate-100 tracking-tight">Mi Progreso Académico</h2>
-                  <p className="text-slate-400 font-medium">Historial de tus últimos ensayos realizados</p>
+                  <h2 className="text-3xl font-black text-slate-800 tracking-tight">Mi Progreso Académico</h2>
+                  <p className="text-slate-500 font-medium">Historial de tus últimos ensayos realizados</p>
                 </div>
                 <button onClick={() => setShowStats(false)} className="text-indigo-400 font-bold flex items-center space-x-2">
                   <ChevronRight className="w-5 h-5 rotate-180" />
@@ -260,19 +260,19 @@ export default function App() {
               </div>
 
               {studentResults.length === 0 ? (
-                <div className="bg-slate-900/60 backdrop-blur rounded-[2.5rem] p-16 text-center shadow-xl border border-indigo-500/20">
-                  <BarChart3 className="w-16 h-16 text-slate-600 mx-auto mb-6" />
-                  <h3 className="text-xl font-bold text-slate-200">Aún no tienes estadísticas</h3>
-                  <p className="text-slate-400 mt-2">Realiza tu primer ensayo para empezar a registrar tu avance.</p>
+                <div className="bg-white rounded-[2.5rem] p-16 text-center shadow-xl border border-slate-200">
+                  <BarChart3 className="w-16 h-16 text-slate-300 mx-auto mb-6" />
+                  <h3 className="text-xl font-bold text-slate-800">Aún no tienes estadísticas</h3>
+                  <p className="text-slate-500 mt-2">Realiza tu primer ensayo para empezar a registrar tu avance.</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                    {studentResults.map((res, i) => (
-                      <div key={i} className="bg-slate-900/60 backdrop-blur p-8 rounded-[2rem] shadow-xl border border-indigo-500/20 relative overflow-hidden group">
-                         <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-500/10 rounded-bl-[3rem] -mr-8 -mt-8 transition-all group-hover:scale-110" />
+                      <div key={i} className="bg-white p-8 rounded-[2rem] shadow-lg border border-slate-200 relative overflow-hidden group">
+                         <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-50 rounded-bl-[3rem] -mr-8 -mt-8 transition-all group-hover:scale-110" />
                          <div className="relative z-10">
-                            <h4 className="text-xl font-black text-slate-100 mb-2 truncate max-w-[80%]">{res.quizTitle}</h4>
-                            <div className="flex items-center text-slate-400 text-sm font-bold mb-6 space-x-2">
+                            <h4 className="text-xl font-black text-slate-800 mb-2 truncate max-w-[80%]">{res.quizTitle}</h4>
+                            <div className="flex items-center text-slate-500 text-sm font-bold mb-6 space-x-2">
                                <Calendar className="w-4 h-4" />
                                <span>{new Date(res.completedAt).toLocaleDateString()}</span>
                             </div>
@@ -280,15 +280,15 @@ export default function App() {
                             <div className="space-y-4">
                                <div className="flex items-center justify-between">
                                   <span className="text-sm font-black text-slate-400 uppercase tracking-widest">Resultado</span>
-                                  <span className="text-lg font-black text-indigo-400">{Math.round((res.score/res.totalQuestions)*100)}%</span>
+                                  <span className="text-lg font-black text-indigo-600">{Math.round((res.score/res.totalQuestions)*100)}%</span>
                                </div>
-                               <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                               <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
                                   <div 
-                                    className="h-full bg-indigo-500 rounded-full shadow-[0_0_10px_rgba(99,102,241,0.5)]" 
+                                    className="h-full bg-indigo-600 rounded-full shadow-[0_0_10px_rgba(99,102,241,0.2)]" 
                                     style={{ width: `${(res.score/res.totalQuestions)*100}%` }} 
                                   />
                                </div>
-                               <div className="flex items-center justify-between text-xs font-bold text-slate-400">
+                               <div className="flex items-center justify-between text-xs font-bold text-slate-500">
                                   <span>{res.score} correctas</span>
                                   <span>{res.totalQuestions} totales</span>
                                </div>
@@ -327,26 +327,26 @@ export default function App() {
             >
               {/* Columna Izquierda - Estadísticas Globales */}
               <div className="hidden lg:flex flex-col w-64 shrink-0 space-y-6">
-                <div className="bg-slate-900/60 backdrop-blur rounded-3xl p-6 shadow-xl border border-indigo-500/20">
-                  <h4 className="font-black text-slate-100 mb-4 flex items-center"><BarChart3 className="w-5 h-5 mr-2 text-indigo-400" /> Rendimiento Global</h4>
+                <div className="bg-white rounded-3xl p-6 shadow-lg border border-slate-200">
+                  <h4 className="font-black text-slate-800 mb-4 flex items-center"><BarChart3 className="w-5 h-5 mr-2 text-indigo-600" /> Rendimiento Global</h4>
                   {user ? (
                     <div>
-                      <div className="text-3xl font-black text-indigo-400 mb-1">
+                      <div className="text-3xl font-black text-indigo-600 mb-1">
                         {studentResults.reduce((sum, r) => sum + r.score, 0)}/{studentResults.reduce((sum, r) => sum + r.totalQuestions, 0)}
                       </div>
-                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Respuestas Correctas</p>
-                      <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                      <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Respuestas Correctas</p>
+                      <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
                         <div 
-                          className="h-full bg-indigo-500 rounded-full shadow-[0_0_10px_rgba(99,102,241,0.5)]" 
+                          className="h-full bg-indigo-600 rounded-full" 
                           style={{width: `${Math.round((studentResults.reduce((sum, r) => sum + r.score, 0) / Math.max(1, studentResults.reduce((sum, r) => sum + r.totalQuestions, 0))) * 100)}%`}}
                         ></div>
                       </div>
                     </div>
                   ) : (
                     <div className="text-center py-4">
-                      <p className="text-sm text-slate-400 mb-4 font-medium">Inicia sesión para ver tu progreso global</p>
-                      <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden mb-2">
-                        <div className="h-full bg-indigo-500/30 rounded-full w-1/2"></div>
+                      <p className="text-sm text-slate-500 mb-4 font-medium">Inicia sesión para ver tu progreso global</p>
+                      <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden mb-2">
+                        <div className="h-full bg-indigo-600/30 rounded-full w-1/2"></div>
                       </div>
                     </div>
                   )}
@@ -356,28 +356,28 @@ export default function App() {
               {/* Columna Central - Contenido Principal */}
               <div className="flex-1 space-y-8">
                 {/* Hero Section Reducido */}
-                <div className="relative overflow-hidden bg-slate-900/80 backdrop-blur-md rounded-[2rem] p-8 text-white shadow-2xl border border-indigo-500/30">
-                  <div className="absolute top-0 right-0 -translate-y-1/4 translate-x-1/4 w-96 h-96 bg-indigo-600/30 rounded-full blur-3xl opacity-50" />
-                  <div className="absolute bottom-0 left-0 translate-y-1/4 -translate-x-1/4 w-64 h-64 bg-violet-600/30 rounded-full blur-3xl opacity-50" />
+                <div className="relative overflow-hidden bg-white rounded-[2rem] p-8 text-slate-800 shadow-xl border border-slate-200">
+                  <div className="absolute top-0 right-0 -translate-y-1/4 translate-x-1/4 w-96 h-96 bg-indigo-50 rounded-full blur-3xl opacity-50" />
+                  <div className="absolute bottom-0 left-0 translate-y-1/4 -translate-x-1/4 w-64 h-64 bg-violet-50 rounded-full blur-3xl opacity-50" />
                   
                   <div className="relative z-10">
                     <h2 className="text-3xl font-black mb-3 leading-[1.1]">
                       {user ? `¡Hola, ${userProfile?.displayName?.split(' ')[0] || 'estudiante'}!` : 'Habilidades del currículum chileno'}
                     </h2>
-                    <p className="text-sm text-indigo-100 mb-6 font-medium max-w-md">
+                    <p className="text-sm text-slate-500 mb-6 font-medium max-w-md">
                       El currículum chileno te permite desarrollar 4 tipos de habilidades fundamentales.
                     </p>
                     
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6 max-w-xl">
                       {[
-                        { id: 1, title: 'Argumentar y comunicar', desc: 'Describir, explicar, argumentar y evaluar procesos y resultados matemáticos.', icon: <BookOpen className="w-5 h-5 text-indigo-200 mb-1" /> },
-                        { id: 2, title: 'Resolver problemas', desc: 'Emplear estrategias para abordar diversas situaciones matemáticas y verificar resultados.', icon: <CheckCircle2 className="w-5 h-5 text-indigo-200 mb-1" /> },
-                        { id: 3, title: 'Modelar', desc: 'Aplicar modelos matemáticos y construir versiones abstractas de sistemas reales.', icon: <BarChart3 className="w-5 h-5 text-indigo-200 mb-1" /> },
-                        { id: 4, title: 'Representar', desc: 'Elegir, utilizar y transitar entre formas concretas, pictóricas y simbólicas.', icon: <Sparkles className="w-5 h-5 text-indigo-200 mb-1" /> },
+                        { id: 1, title: 'Argumentar y comunicar', desc: 'Describir, explicar, argumentar y evaluar procesos y resultados matemáticos.', icon: <BookOpen className="w-5 h-5 text-indigo-600 mb-1" /> },
+                        { id: 2, title: 'Resolver problemas', desc: 'Emplear estrategias para abordar diversas situaciones matemáticas y verificar resultados.', icon: <CheckCircle2 className="w-5 h-5 text-indigo-600 mb-1" /> },
+                        { id: 3, title: 'Modelar', desc: 'Aplicar modelos matemáticos y construir versiones abstractas de sistemas reales.', icon: <BarChart3 className="w-5 h-5 text-indigo-600 mb-1" /> },
+                        { id: 4, title: 'Representar', desc: 'Elegir, utilizar y transitar entre formas concretas, pictóricas y simbólicas.', icon: <Sparkles className="w-5 h-5 text-indigo-600 mb-1" /> },
                       ].map((skill) => (
-                        <div key={skill.id} className="group relative bg-white/10 p-3 rounded-xl border border-white/20 hover:bg-white/20 transition-colors flex flex-col items-center justify-center cursor-help">
+                        <div key={skill.id} className="group relative bg-slate-50 p-3 rounded-xl border border-slate-200 hover:bg-slate-100 transition-colors flex flex-col items-center justify-center cursor-help">
                           {skill.icon}
-                          <span className="text-[11px] font-bold text-center leading-tight truncate w-full">{skill.title.split(' ')[0]}</span>
+                          <span className="text-[11px] font-bold text-center leading-tight truncate w-full text-slate-700">{skill.title.split(' ')[0]}</span>
                           {/* Tooltip con información oficial del MINEDUC */}
                           <div className="absolute opacity-0 pb-3 group-hover:opacity-100 transition-all bg-slate-900 border border-slate-700 text-white p-3 rounded-xl -top-28 left-1/2 -translate-x-1/2 w-48 shadow-2xl pointer-events-none z-50">
                             <p className="font-bold text-xs text-indigo-300 mb-1">{skill.title}</p>
@@ -391,7 +391,7 @@ export default function App() {
                     {role === 'teacher' || user?.email?.toLowerCase().includes('naomi') ? (
                       <button
                         onClick={() => setIsCreating(true)}
-                        className="group bg-indigo-500/20 border border-indigo-400/30 text-indigo-300 hover:bg-indigo-500/40 hover:text-white px-6 py-3 rounded-xl font-bold text-sm transition-all active:scale-95 shadow-lg flex items-center space-x-2"
+                        className="group bg-indigo-600 text-white hover:bg-indigo-700 px-6 py-3 rounded-xl font-bold text-sm transition-all active:scale-95 shadow-lg flex items-center space-x-2"
                       >
                         <Plus className="w-5 h-5" />
                         <span>Subir Material Docente</span>
@@ -411,17 +411,17 @@ export default function App() {
                 {/* Quiz List */}
                 <div className="space-y-6">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-xl font-black text-slate-100 flex items-center space-x-2">
-                      <BookOpen className="w-5 h-5 text-indigo-400" />
+                    <h3 className="text-xl font-black text-slate-800 flex items-center space-x-2">
+                      <BookOpen className="w-5 h-5 text-indigo-600" />
                       <span>Repositorio de Ensayos</span>
                     </h3>
-                    <div className="text-xs font-bold text-slate-300 bg-slate-900/50 px-3 py-1 rounded-full border border-indigo-500/20">
+                    <div className="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
                       {quizzes.length} disponibles
                     </div>
                   </div>
 
                   {quizzes.length === 0 ? (
-                    <div className="bg-slate-900/60 backdrop-blur border border-indigo-500/20 border-dashed rounded-3xl p-10 text-center">
+                    <div className="bg-white border border-slate-200 border-dashed rounded-3xl p-10 text-center shadow-sm">
                       <div className="w-16 h-16 bg-slate-800 text-slate-500 rounded-2xl flex items-center justify-center mx-auto mb-4 transform -rotate-6">
                         <BookOpen className="w-8 h-8" />
                       </div>
@@ -441,7 +441,7 @@ export default function App() {
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: idx * 0.1 }}
                           onClick={() => setCurrentQuiz(quiz)}
-                          className="bg-slate-900/60 backdrop-blur p-5 rounded-2xl shadow-lg border border-indigo-500/20 hover:shadow-[0_0_20px_rgba(79,70,229,0.2)] hover:border-indigo-400/50 group cursor-pointer transition-all"
+                          className="bg-white p-5 rounded-2xl shadow-md border border-slate-200 hover:shadow-xl hover:border-indigo-400 group cursor-pointer transition-all"
                         >
                           <div className="flex items-start justify-between mb-4">
                             <div className="w-10 h-10 bg-indigo-500/20 text-indigo-400 rounded-xl flex items-center justify-center group-hover:bg-indigo-500 group-hover:text-white transition-colors">
@@ -457,12 +457,12 @@ export default function App() {
                             )}
                           </div>
                           
-                          <h3 className="text-base font-black text-slate-200 mb-3 line-clamp-2 leading-snug group-hover:text-indigo-300 transition-colors">
+                          <h3 className="text-base font-black text-slate-800 mb-3 line-clamp-2 leading-snug group-hover:text-indigo-600 transition-colors">
                             {quiz.title}
                           </h3>
                           
-                          <div className="mt-auto flex items-center justify-between border-t border-slate-700/50 pt-3">
-                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-800 px-2 py-1 rounded-md">
+                          <div className="mt-auto flex items-center justify-between border-t border-slate-100 pt-3">
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-50 px-2 py-1 rounded-md">
                               {quiz.questions.length} PREGUNTAS
                             </span>
                           </div>
@@ -475,17 +475,17 @@ export default function App() {
 
               {/* Columna Derecha - Últimos Ensayos */}
               <div className="hidden lg:flex flex-col w-64 shrink-0 space-y-6">
-                <div className="bg-slate-900/60 backdrop-blur rounded-3xl p-6 shadow-xl border border-indigo-500/20">
-                  <h4 className="font-black text-slate-100 mb-4 flex items-center text-sm"><CheckCircle2 className="w-4 h-4 mr-2 text-green-400" /> Últimos Resultados</h4>
+                <div className="bg-white rounded-3xl p-6 shadow-lg border border-slate-200">
+                  <h4 className="font-black text-slate-800 mb-4 flex items-center text-sm"><CheckCircle2 className="w-4 h-4 mr-2 text-green-500" /> Últimos Resultados</h4>
                   {user ? (
                     <div className="space-y-3">
                       {studentResults.slice(0,4).map(res => (
-                        <div key={res.quizId + res.completedAt} className="flex flex-col bg-slate-800/50 p-3 rounded-xl border border-slate-700/50">
-                          <p className="text-xs font-bold text-slate-200 line-clamp-1 mb-2" title={res.quizTitle}>{res.quizTitle}</p>
+                        <div key={res.quizId + res.completedAt} className="flex flex-col bg-slate-50 p-3 rounded-xl border border-slate-200">
+                          <p className="text-xs font-bold text-slate-800 line-clamp-1 mb-2" title={res.quizTitle}>{res.quizTitle}</p>
                           <div className="flex items-center justify-between">
-                            <span className="text-[10px] text-slate-400 font-medium">Hace poco</span>
-                            <span className="text-sm font-black text-indigo-400">
-                              {Math.round((res.score / res.totalQuestions) * 100)}%
+                            <span className="text-[10px] text-slate-500 font-medium">Hace poco</span>
+                            <span className="text-sm font-black text-indigo-600">
+                               {Math.round((res.score / res.totalQuestions) * 100)}%
                             </span>
                           </div>
                         </div>
@@ -494,9 +494,9 @@ export default function App() {
                     </div>
                   ) : (
                     <div className="text-center py-4">
-                      <p className="text-xs text-slate-400 font-medium pb-2 border-b border-slate-700/50 mb-2">Aquí verás tus puntajes recientes.</p>
-                      <div className="bg-slate-800 h-12 rounded-xl border border-slate-700/50 mb-2"></div>
-                      <div className="bg-slate-800 h-12 rounded-xl border border-slate-700/50"></div>
+                      <p className="text-xs text-slate-500 font-medium pb-2 border-b border-slate-100 mb-2">Aquí verás tus puntajes recientes.</p>
+                      <div className="bg-slate-50 h-12 rounded-xl border border-slate-100 mb-2"></div>
+                      <div className="bg-slate-800/5 h-12 rounded-xl border border-slate-100"></div>
                     </div>
                   )}
                 </div>
