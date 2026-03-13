@@ -1,1 +1,1 @@
-Update trigger: Theme revert verified.
+Update trigger: Forcing redeploy for theme verification (March 13).
