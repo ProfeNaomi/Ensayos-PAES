@@ -196,25 +196,7 @@ export function AITutor({ question, userWrongAnswerIndex }: AITutorProps) {
 
   return (
     <div className="flex flex-col h-full bg-slate-50 overflow-hidden relative">
-      <div className="bg-white border-b border-slate-200 p-5 flex items-center justify-between z-10 font-display">
-        <div className="flex items-center space-x-3 text-slate-800">
-          <div className="w-10 h-10 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-100">
-            <Bot className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <h3 className="font-black text-sm tracking-tight uppercase">Tutor IA Stephanie</h3>
-            <div className="flex items-center space-x-1.5">
-               <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
-               <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest leading-none">En Línea</p>
-            </div>
-          </div>
-        </div>
-        <div className="flex space-x-2">
-           <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-indigo-600 border border-slate-100">
-              <Sparkles className="w-4 h-4" />
-           </div>
-        </div>
-      </div>
+
 
       <div 
         ref={messagesContainerRef}
@@ -268,7 +250,7 @@ export function AITutor({ question, userWrongAnswerIndex }: AITutorProps) {
                  <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce [animation-delay:-0.15s]" />
                  <div className="w-1.5 h-1.5 bg-indigo-600 rounded-full animate-bounce" />
               </div>
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tutor pensando</span>
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">IA pensando</span>
             </div>
           </motion.div>
         )}

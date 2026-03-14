@@ -162,7 +162,7 @@ export default function App() {
       </div>
 
       <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div 
             className="flex items-center space-x-3 cursor-pointer group"
             onClick={() => {
@@ -171,12 +171,12 @@ export default function App() {
               setShowStats(false);
             }}
           >
-            <div className="w-11 h-11 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-indigo-100 group-hover:scale-110 transition-transform duration-300">
-              <BookOpen className="w-6 h-6" />
+            <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-100 group-hover:scale-110 transition-transform duration-300">
+              <BookOpen className="w-5 h-5" />
             </div>
             <div>
-              <h1 className="text-lg font-black text-slate-800 tracking-tight leading-none">
-                Plataforma de ejercitación v1.3<br/><span className="text-indigo-600">Profe Naomi</span>
+              <h1 className="text-base font-black text-slate-800 tracking-tight leading-none">
+                Plataforma de ejercitación<br/><span className="text-indigo-600">Profe Naomi</span>
               </h1>
             </div>
           </div>
